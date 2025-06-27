@@ -1,0 +1,930 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚽ プレミアリーグ メール検索システム - インタラクティブ版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin: 0;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .search-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .search-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .clear-button {
+            padding: 15px 20px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-button:hover {
+            background: #7f8c8d;
+        }
+        
+        .sample-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .sample-btn {
+            padding: 8px 15px;
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .sample-btn:hover {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .results-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .result-item {
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .result-item:hover {
+            border-color: #3498db;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+        }
+        
+        .result-header {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .result-content {
+            padding: 20px;
+        }
+        
+        .email-meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .contract-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+        }
+        
+        .transfer-info {
+            background: #fce4ec;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e91e63;
+            margin: 15px 0;
+        }
+        
+        .performance-info {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #9c27b0;
+            margin: 15px 0;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #3498db;
+            font-size: 1.1em;
+        }
+        
+        .footer {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .sample-questions {
+                justify-content: flex-start;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚽ プレミアリーグ メール検索システム</h1>
+            <p>2040年のプレミアリーグクラブのメールから選手情報をリアルタイム検索</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">30</div>
+                <div class="stat-label">総メール数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">対象クラブ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">Arsenal</div>
+                <div class="stat-label">アーセナル</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">Chelsea</div>
+                <div class="stat-label">チェルシー</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">Liverpool</div>
+                <div class="stat-label">リヴァプール</div>
+            </div>
+        </div>
+        
+        <div class="search-section">
+            <div class="search-title">🔍 質問を入力してください</div>
+            <div class="search-form">
+                <input type="text" id="searchInput" class="search-input" 
+                       placeholder="例: Mohamed Salah Jr.の契約条件は？" 
+                       onkeypress="handleKeyPress(event)">
+                <button class="search-button" onclick="performSearch()">検索</button>
+                <button class="clear-button" onclick="clearResults()">クリア</button>
+            </div>
+            
+            <div class="sample-questions">
+                <div class="sample-btn" onclick="fillQuery('Mohamed Salah Jr.の契約条件は？')">
+                    Mohamed Salah Jr.の契約
+                </div>
+                <div class="sample-btn" onclick="fillQuery('Gabriel Fernandez 移籍金')">
+                    Gabriel Fernandez移籍金
+                </div>
+                <div class="sample-btn" onclick="fillQuery('Arsenal contract salary')">
+                    Arsenal契約情報
+                </div>
+                <div class="sample-btn" onclick="fillQuery('Kai Havertz Jr. transfer')">
+                    Kai Havertz Jr.移籍
+                </div>
+                <div class="sample-btn" onclick="fillQuery('Chelsea injury players')">
+                    Chelsea怪我選手
+                </div>
+                <div class="sample-btn" onclick="fillQuery('Liverpool academy player')">
+                    Liverpoolアカデミー
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-section" id="resultsSection">
+            <div class="results-title">📋 検索結果</div>
+            <div id="resultsContent"></div>
+        </div>
+        
+        <div class="footer">
+            🏆 Premier League Email Search System 2040 | 
+            Built with JavaScript | 
+            📧 Real-time search through Arsenal, Chelsea, Liverpool emails
+        </div>
+    </div>
+
+    <script>
+        // Email data embedded in JavaScript
+        const emailsData = [
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_002.msg",
+    "club": "Chelsea",
+    "filename": "email_002.msg",
+    "content": "From: transfers@chelsea.com\nTo: sporting.director@realmadrid.com\nSubject: Transfer Inquiry - Gabriel Fernandez\nDate: June 18, 2040\n\nEstimado Sr. Martinez,\n\nChelsea FC formally submits our offer for Gabriel Fernandez:\n\nTransfer Package:\n- Initial Fee: €75 million\n- Performance Add-ons: €20 million\n  * €8M after 50 appearances for Chelsea\n  * €7M if Champions League qualification in first two seasons\n  * €5M if player scores 25+ goals in any season\n\nPlayer Terms Agreed:\n- Contract: 5 years\n- Weekly Wage: £165,000\n- Signing Bonus: €5 million\n- Release Clause: €150 million (after 3 years)\n\nFernandez Statistics (2039-40):\n- La Liga: 36 appearances, 23 goals, 9 assists\n- Champions League: 12 appearances, 8 goals\n- International: 18 caps, 11 goals for Brazil\n\nMedical and personal terms already agreed. Player excited about Premier League challenge and working with our coaching staff.\n\nWe believe Gabriel will be the final piece for our title ambitions. Please respond by June 25th as we need to complete registration before transfer window closes.\n\nSaludos cordiales,\nRoberto Silva\nTransfer Director\nChelsea FC",
+    "from": "transfers@chelsea.com",
+    "to": "sporting.director@realmadrid.com",
+    "subject": "Transfer Inquiry - Gabriel Fernandez",
+    "date": "June 18, 2040",
+    "body": "Estimado Sr. Martinez,\n\nChelsea FC formally submits our offer for Gabriel Fernandez:\n\nTransfer Package:\n- Initial Fee: €75 million\n- Performance Add-ons: €20 million\n  * €8M after 50 appearances for Chelsea\n  * €7M if Champions League qualification in first two seasons\n  * €5M if player scores 25+ goals in any season\n\nPlayer Terms Agreed:\n- Contract: 5 years\n- Weekly Wage: £165,000\n- Signing Bonus: €5 million\n- Release Clause: €150 million (after 3 years)\n\nFernandez Statistics (2039-40):\n- La Liga: 36 appearances, 23 goals, 9 assists\n- Champions League: 12 appearances, 8 goals\n- International: 18 caps, 11 goals for Brazil\n\nMedical and personal terms already agreed. Player excited about Premier League challenge and working with our coaching staff.\n\nWe believe Gabriel will be the final piece for our title ambitions. Please respond by June 25th as we need to complete registration before transfer window closes.\n\nSaludos cordiales,\nRoberto Silva\nTransfer Director\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_006.msg",
+    "club": "Chelsea",
+    "filename": "email_006.msg",
+    "content": "From: legal@chelsea.com\nTo: tribunals@premierleague.com\nSubject: Contract Dispute Resolution - James Mitchell Case\nDate: January 30, 2040\n\nPremier League Tribunal Services,\n\nFormal submission regarding contract dispute with James Mitchell:\n\nCase Overview:\n- Player: James Mitchell (Age 24, Left-back)\n- Dispute: Performance bonus calculation disagreement\n- Amount in Question: £450,000\n\nPlayer's Claim:\n- Contract states: \"£15,000 per clean sheet when starting\"\n- Player started 30 matches, team kept 22 clean sheets\n- Claims entitlement to: 22 × £15,000 = £330,000\n- Additional claim for Champions League clean sheets: 8 × £15,000 = £120,000\n\nClub's Position:\n- Bonus only applies to Premier League matches\n- Champions League has separate bonus structure (£10,000 per match)\n- Total due: (22 × £15,000) + (8 × £10,000) = £410,000\n- Amount paid: £410,000 (no outstanding balance)\n\nSupporting Evidence:\n- Original contract signed July 2038\n- Previous season payments (consistent interpretation)\n- Player agent acknowledgment of bonus structure\n- Financial records of all payments made\n\nMitchell's Performance Record:\n- Premier League: 30 appearances, 2 assists, 22 clean sheets\n- Champions League: 8 appearances, 1 assist, 8 clean sheets\n- Disciplinary: 6 yellow cards, 0 red cards\n\nRequesting tribunal hearing date within 30 days.\n\nRespectfully,\nPatricia Moore\nLegal Counsel\nChelsea FC",
+    "from": "legal@chelsea.com",
+    "to": "tribunals@premierleague.com",
+    "subject": "Contract Dispute Resolution - James Mitchell Case",
+    "date": "January 30, 2040",
+    "body": "Premier League Tribunal Services,\n\nFormal submission regarding contract dispute with James Mitchell:\n\nCase Overview:\n- Player: James Mitchell (Age 24, Left-back)\n- Dispute: Performance bonus calculation disagreement\n- Amount in Question: £450,000\n\nPlayer's Claim:\n- Contract states: \"£15,000 per clean sheet when starting\"\n- Player started 30 matches, team kept 22 clean sheets\n- Claims entitlement to: 22 × £15,000 = £330,000\n- Additional claim for Champions League clean sheets: 8 × £15,000 = £120,000\n\nClub's Position:\n- Bonus only applies to Premier League matches\n- Champions League has separate bonus structure (£10,000 per match)\n- Total due: (22 × £15,000) + (8 × £10,000) = £410,000\n- Amount paid: £410,000 (no outstanding balance)\n\nSupporting Evidence:\n- Original contract signed July 2038\n- Previous season payments (consistent interpretation)\n- Player agent acknowledgment of bonus structure\n- Financial records of all payments made\n\nMitchell's Performance Record:\n- Premier League: 30 appearances, 2 assists, 22 clean sheets\n- Champions League: 8 appearances, 1 assist, 8 clean sheets\n- Disciplinary: 6 yellow cards, 0 red cards\n\nRequesting tribunal hearing date within 30 days.\n\nRespectfully,\nPatricia Moore\nLegal Counsel\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_003.msg",
+    "club": "Chelsea",
+    "filename": "email_003.msg",
+    "content": "From: academy@chelsea.com\nTo: parents@cobham.youth\nSubject: Scholarship Offer - Max Johnson (Age 16)\nDate: April 12, 2040\n\nDear Mr. and Mrs. Johnson,\n\nChelsea FC Academy is pleased to offer Max a 2-year scholarship:\n\nScholarship Details:\n- Duration: July 2040 - June 2042\n- Weekly Allowance: £500 (Year 1), £750 (Year 2)\n- Full education support at Cobham facility\n- Accommodation provided if needed\n- Medical and dental coverage\n\nAcademy Performance Review:\n- U16 Premier League South: 28 appearances, 19 goals\n- England U16: 6 caps, 4 goals\n- Academy Player of Month: March 2040\n- Position: Striker/Attacking Midfielder\n\nDevelopment Pathway:\n- Integration with U18 squad from January 2041\n- First-team training opportunities with senior players\n- Professional contract potential at age 17 (if development continues)\n\nAcademy Success Stories:\n- 12 current first-team players from our academy\n- £200M+ generated from academy graduate sales since 2035\n- 95% of scholarship players receive professional contracts\n\nMax shows exceptional potential. Our scouts have tracked his progress for 18 months and believe he has the technical ability and mentality to succeed at the highest level.\n\nPlease confirm by April 20th.\n\nBest wishes,\nFrank Lampard Jr.\nAcademy Director\nChelsea FC",
+    "from": "academy@chelsea.com",
+    "to": "parents@cobham.youth",
+    "subject": "Scholarship Offer - Max Johnson (Age 16)",
+    "date": "April 12, 2040",
+    "body": "Dear Mr. and Mrs. Johnson,\n\nChelsea FC Academy is pleased to offer Max a 2-year scholarship:\n\nScholarship Details:\n- Duration: July 2040 - June 2042\n- Weekly Allowance: £500 (Year 1), £750 (Year 2)\n- Full education support at Cobham facility\n- Accommodation provided if needed\n- Medical and dental coverage\n\nAcademy Performance Review:\n- U16 Premier League South: 28 appearances, 19 goals\n- England U16: 6 caps, 4 goals\n- Academy Player of Month: March 2040\n- Position: Striker/Attacking Midfielder\n\nDevelopment Pathway:\n- Integration with U18 squad from January 2041\n- First-team training opportunities with senior players\n- Professional contract potential at age 17 (if development continues)\n\nAcademy Success Stories:\n- 12 current first-team players from our academy\n- £200M+ generated from academy graduate sales since 2035\n- 95% of scholarship players receive professional contracts\n\nMax shows exceptional potential. Our scouts have tracked his progress for 18 months and believe he has the technical ability and mentality to succeed at the highest level.\n\nPlease confirm by April 20th.\n\nBest wishes,\nFrank Lampard Jr.\nAcademy Director\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_007.msg",
+    "club": "Chelsea",
+    "filename": "email_007.msg",
+    "content": "From: scouting@chelsea.com\nTo: transfers@chelsea.com\nSubject: Target Assessment - Antoine Dubois (AS Monaco)\nDate: October 14, 2040\n\nTransfer Committee,\n\nComprehensive report on Antoine Dubois for January window consideration:\n\nPlayer Profile:\n- Age: 22\n- Position: Central Midfielder\n- Current Club: AS Monaco\n- Contract Expires: June 2042\n- Estimated Market Value: €45-55 million\n\nPerformance Analysis (2040 Season):\n- Ligue 1: 28 appearances, 8 goals, 12 assists\n- Champions League: 6 appearances, 2 goals, 3 assists\n- French U21: 15 caps, 4 goals\n- Key passes per game: 3.8 (top 5 in Ligue 1)\n\nContract Intelligence:\n- Current wage: €75,000/week\n- Release clause: €65 million (active from January 2041)\n- Agent: CAA Sports (same as Petrov - good relationship)\n- Personal terms: Open to Premier League move\n\nFinancial Projection:\n- Transfer fee: €50-55 million\n- Wages: £120,000/week (5-year contract)\n- Agent fees: €4 million\n- Total investment: €85 million over 5 years\n\nSquad Integration:\n- Would rotate with Petrov in advanced midfield role\n- Age profile fits long-term strategy\n- Left-footed, adds tactical variety\n- Leadership potential (captain at U21 level)\n\nRecommendation: PROCEED with formal approach in January. Player fits our playing style and has high resale value potential.\n\nBest regards,\nPhilippe Clement\nChief Scout\nChelsea FC",
+    "from": "scouting@chelsea.com",
+    "to": "transfers@chelsea.com",
+    "subject": "Target Assessment - Antoine Dubois (AS Monaco)",
+    "date": "October 14, 2040",
+    "body": "Transfer Committee,\n\nComprehensive report on Antoine Dubois for January window consideration:\n\nPlayer Profile:\n- Age: 22\n- Position: Central Midfielder\n- Current Club: AS Monaco\n- Contract Expires: June 2042\n- Estimated Market Value: €45-55 million\n\nPerformance Analysis (2040 Season):\n- Ligue 1: 28 appearances, 8 goals, 12 assists\n- Champions League: 6 appearances, 2 goals, 3 assists\n- French U21: 15 caps, 4 goals\n- Key passes per game: 3.8 (top 5 in Ligue 1)\n\nContract Intelligence:\n- Current wage: €75,000/week\n- Release clause: €65 million (active from January 2041)\n- Agent: CAA Sports (same as Petrov - good relationship)\n- Personal terms: Open to Premier League move\n\nFinancial Projection:\n- Transfer fee: €50-55 million\n- Wages: £120,000/week (5-year contract)\n- Agent fees: €4 million\n- Total investment: €85 million over 5 years\n\nSquad Integration:\n- Would rotate with Petrov in advanced midfield role\n- Age profile fits long-term strategy\n- Left-footed, adds tactical variety\n- Leadership potential (captain at U21 level)\n\nRecommendation: PROCEED with formal approach in January. Player fits our playing style and has high resale value potential.\n\nBest regards,\nPhilippe Clement\nChief Scout\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_010.msg",
+    "club": "Chelsea",
+    "filename": "email_010.msg",
+    "content": "From: data.analytics@chelsea.com\nTo: recruitment@chelsea.com\nSubject: Statistical Analysis - January Transfer Targets\nDate: December 20, 2040\n\nRecruitment Team,\n\nData-driven analysis of January transfer window targets:\n\nPriority Position: Right-Back\nTarget Profile Analysis:\n\n1. Marco Silva (Valencia CF)\n   - Age: 25, Contract expires 2042\n   - Defensive Actions: 4.2 per game (85th percentile)\n   - Crossing Accuracy: 67% (good for our system)\n   - Market Value: £28-32 million\n   - Wage Expectation: £85,000/week\n\n2. Ryan Thompson (Celtic FC)  \n   - Age: 23, Contract expires 2041\n   - Attack Contribution: 0.3 goals+assists per game\n   - Sprint Speed: Top 10% in Scottish Premiership\n   - Market Value: £18-22 million\n   - Wage Expectation: £65,000/week\n\nPerformance Modeling:\n- Silva projects 15% improvement in defensive stability\n- Thompson offers 22% more attacking output\n- Both fit our tactical system (wing-back role)\n\nContract Structure Recommendations:\n- Base salary competitive with squad average\n- Performance bonuses: clean sheet and assist-based\n- Appearance bonuses to ensure regular selection\n- Resale value protection: 20% sell-on clause\n\nExpected Impact:\n- Improved squad depth for European competitions\n- Reduced injury risk through rotation\n- Enhanced tactical flexibility\n\nData confidence level: 87% (based on 3-season analysis)\n\nAnalytics Team\nChelsea FC",
+    "from": "data.analytics@chelsea.com",
+    "to": "recruitment@chelsea.com",
+    "subject": "Statistical Analysis - January Transfer Targets",
+    "date": "December 20, 2040",
+    "body": "Recruitment Team,\n\nData-driven analysis of January transfer window targets:\n\nPriority Position: Right-Back\nTarget Profile Analysis:\n\n1. Marco Silva (Valencia CF)\n   - Age: 25, Contract expires 2042\n   - Defensive Actions: 4.2 per game (85th percentile)\n   - Crossing Accuracy: 67% (good for our system)\n   - Market Value: £28-32 million\n   - Wage Expectation: £85,000/week\n\n2. Ryan Thompson (Celtic FC)  \n   - Age: 23, Contract expires 2041\n   - Attack Contribution: 0.3 goals+assists per game\n   - Sprint Speed: Top 10% in Scottish Premiership\n   - Market Value: £18-22 million\n   - Wage Expectation: £65,000/week\n\nPerformance Modeling:\n- Silva projects 15% improvement in defensive stability\n- Thompson offers 22% more attacking output\n- Both fit our tactical system (wing-back role)\n\nContract Structure Recommendations:\n- Base salary competitive with squad average\n- Performance bonuses: clean sheet and assist-based\n- Appearance bonuses to ensure regular selection\n- Resale value protection: 20% sell-on clause\n\nExpected Impact:\n- Improved squad depth for European competitions\n- Reduced injury risk through rotation\n- Enhanced tactical flexibility\n\nData confidence level: 87% (based on 3-season analysis)\n\nAnalytics Team\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_008.msg",
+    "club": "Chelsea",
+    "filename": "email_008.msg",
+    "content": "From: physio@chelsea.com\nTo: insurance@chelsea.com\nSubject: Injury Insurance Claims - Q4 2040\nDate: December 15, 2040\n\nInsurance Department,\n\nQuarterly injury insurance claims submission:\n\nMajor Injury Claims:\n1. Gabriel Fernandez - Knee Ligament (October 12-November 30)\n   - Matches missed: 8\n   - Wage coverage claim: £1.32 million\n   - Medical costs: £45,000\n   - Status: Returned to full training\n\n2. Thomas Mueller - Shoulder Dislocation (November 5-December 10)\n   - Matches missed: 6\n   - Wage coverage claim: £900,000\n   - Medical costs: £25,000\n   - Status: Full recovery, available for selection\n\n3. Academy Player Collins - Ankle Fracture (September 20-January 2041)\n   - Expected matches missed: 18\n   - Development impact: Contract renewal delayed\n   - Medical costs: £30,000\n   - Status: Rehabilitation ongoing\n\nContract Impact Analysis:\n- Fernandez missed appearance bonus threshold (18/25 instead of 25/25)\n- Mueller's injury prevented Champions League bonus qualification\n- Collins' injury affects professional contract negotiations\n\nPrevention Measures Implemented:\n- Additional fitness testing protocols\n- Pitch condition monitoring increased\n- Player workload management system upgraded\n- Recovery time between matches optimized\n\nTotal Claims: £2.32 million\nTotal Medical Costs: £100,000\n\nDr. Emma Clarke\nHead Physiotherapist\nChelsea FC",
+    "from": "physio@chelsea.com",
+    "to": "insurance@chelsea.com",
+    "subject": "Injury Insurance Claims - Q4 2040",
+    "date": "December 15, 2040",
+    "body": "Insurance Department,\n\nQuarterly injury insurance claims submission:\n\nMajor Injury Claims:\n1. Gabriel Fernandez - Knee Ligament (October 12-November 30)\n   - Matches missed: 8\n   - Wage coverage claim: £1.32 million\n   - Medical costs: £45,000\n   - Status: Returned to full training\n\n2. Thomas Mueller - Shoulder Dislocation (November 5-December 10)\n   - Matches missed: 6\n   - Wage coverage claim: £900,000\n   - Medical costs: £25,000\n   - Status: Full recovery, available for selection\n\n3. Academy Player Collins - Ankle Fracture (September 20-January 2041)\n   - Expected matches missed: 18\n   - Development impact: Contract renewal delayed\n   - Medical costs: £30,000\n   - Status: Rehabilitation ongoing\n\nContract Impact Analysis:\n- Fernandez missed appearance bonus threshold (18/25 instead of 25/25)\n- Mueller's injury prevented Champions League bonus qualification\n- Collins' injury affects professional contract negotiations\n\nPrevention Measures Implemented:\n- Additional fitness testing protocols\n- Pitch condition monitoring increased\n- Player workload management system upgraded\n- Recovery time between matches optimized\n\nTotal Claims: £2.32 million\nTotal Medical Costs: £100,000\n\nDr. Emma Clarke\nHead Physiotherapist\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_009.msg",
+    "club": "Chelsea",
+    "filename": "email_009.msg",
+    "content": "From: ceo@chelsea.com\nTo: ownership@chelsea.com\nSubject: Annual Financial Summary - Player Investments 2040\nDate: December 31, 2040\n\nOwnership Group,\n\nYear-end financial review of player-related expenditures:\n\nTransfer Activity Summary:\n- Gross Spend: £145 million\n- Player Sales: £38 million  \n- Net Spend: £107 million\n- Major Signings: Fernandez (£65M), Dubois (£47M), Collins promotion (£8M)\n\nWage Bill Analysis:\n- Total Annual Wages: £178 million\n- Average Player Salary: £138,000/week\n- Bonus Payments: £23 million\n- Agent Fees: £12 million\n\nPerformance ROI:\n- League Position: 2nd (Champions League qualification secured)\n- Champions League: Quarter-finals\n- Domestic Cups: FA Cup semi-final, EFL Cup winners\n- Prize Money Earned: £67 million\n\nContract Renewals Completed:\n- Sofia Petrov: 3 years, £200K/week\n- Academy graduates: 4 professional contracts signed\n- Coaching staff: 2-year extensions across all departments\n\nFinancial Compliance:\n- FFP Status: Compliant\n- Wage-to-Revenue Ratio: 64% (below 70% threshold)\n- UEFA Squad Cost Ratio: 67% (compliant)\n\nPlayer Asset Value:\n- Squad Market Value: £485 million (increase of £67M from 2039)\n- Academy Value: £45 million (8 prospects with first-team potential)\n\n2040 has been successful both financially and competitively.\n\nBest regards,\nDaniel Levy\nChief Executive Officer\nChelsea FC",
+    "from": "ceo@chelsea.com",
+    "to": "ownership@chelsea.com",
+    "subject": "Annual Financial Summary - Player Investments 2040",
+    "date": "December 31, 2040",
+    "body": "Ownership Group,\n\nYear-end financial review of player-related expenditures:\n\nTransfer Activity Summary:\n- Gross Spend: £145 million\n- Player Sales: £38 million  \n- Net Spend: £107 million\n- Major Signings: Fernandez (£65M), Dubois (£47M), Collins promotion (£8M)\n\nWage Bill Analysis:\n- Total Annual Wages: £178 million\n- Average Player Salary: £138,000/week\n- Bonus Payments: £23 million\n- Agent Fees: £12 million\n\nPerformance ROI:\n- League Position: 2nd (Champions League qualification secured)\n- Champions League: Quarter-finals\n- Domestic Cups: FA Cup semi-final, EFL Cup winners\n- Prize Money Earned: £67 million\n\nContract Renewals Completed:\n- Sofia Petrov: 3 years, £200K/week\n- Academy graduates: 4 professional contracts signed\n- Coaching staff: 2-year extensions across all departments\n\nFinancial Compliance:\n- FFP Status: Compliant\n- Wage-to-Revenue Ratio: 64% (below 70% threshold)\n- UEFA Squad Cost Ratio: 67% (compliant)\n\nPlayer Asset Value:\n- Squad Market Value: £485 million (increase of £67M from 2039)\n- Academy Value: £45 million (8 prospects with first-team potential)\n\n2040 has been successful both financially and competitively.\n\nBest regards,\nDaniel Levy\nChief Executive Officer\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_001.msg",
+    "club": "Chelsea",
+    "filename": "email_001.msg",
+    "content": "From: director.football@chelsea.com\nTo: agent@elitemanagement.com\nSubject: Contract Renewal - Captain Sofia Petrov\nDate: February 28, 2040\n\nDear Mr. Anderson,\n\nChelsea FC's contract proposal for Sofia Petrov's renewal:\n\nContract Terms:\n- Duration: 3 years (until June 2043)\n- Weekly Salary: £200,000 (increase from £175,000)\n- Captaincy Bonus: £1 million annually\n- Champions League Bonus: £750,000 if we reach semifinals\n- Goal Bonus: £75,000 per Premier League goal\n- Leadership Bonus: £25,000 per month as captain\n\nPerformance Analysis (2039-40 Season):\n- Appearances: 34 matches\n- Goals: 12 (midfielder record for club)\n- Assists: 16\n- Captain in 32 matches\n- Player ratings average: 8.2/10\n\nAdditional Benefits:\n- Private box for family at Stamford Bridge\n- Car allowance: £60,000 annually\n- Image rights: 60/40 split (player favor)\n- Testimonial match guaranteed after 10 years service\n\nSofia has been instrumental in our title challenge. Her leadership both on and off pitch makes her invaluable to the squad.\n\nAwaiting your response by March 10th.\n\nRegards,\nEmma Thompson\nDirector of Football\nChelsea FC",
+    "from": "director.football@chelsea.com",
+    "to": "agent@elitemanagement.com",
+    "subject": "Contract Renewal - Captain Sofia Petrov",
+    "date": "February 28, 2040",
+    "body": "Dear Mr. Anderson,\n\nChelsea FC's contract proposal for Sofia Petrov's renewal:\n\nContract Terms:\n- Duration: 3 years (until June 2043)\n- Weekly Salary: £200,000 (increase from £175,000)\n- Captaincy Bonus: £1 million annually\n- Champions League Bonus: £750,000 if we reach semifinals\n- Goal Bonus: £75,000 per Premier League goal\n- Leadership Bonus: £25,000 per month as captain\n\nPerformance Analysis (2039-40 Season):\n- Appearances: 34 matches\n- Goals: 12 (midfielder record for club)\n- Assists: 16\n- Captain in 32 matches\n- Player ratings average: 8.2/10\n\nAdditional Benefits:\n- Private box for family at Stamford Bridge\n- Car allowance: £60,000 annually\n- Image rights: 60/40 split (player favor)\n- Testimonial match guaranteed after 10 years service\n\nSofia has been instrumental in our title challenge. Her leadership both on and off pitch makes her invaluable to the squad.\n\nAwaiting your response by March 10th.\n\nRegards,\nEmma Thompson\nDirector of Football\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_005.msg",
+    "club": "Chelsea",
+    "filename": "email_005.msg",
+    "content": "From: manager@chelsea.com\nTo: board@chelsea.com\nSubject: Squad Rotation Strategy - Injury Prevention and Contract Obligations\nDate: November 25, 2040\n\nBoard Members,\n\nMid-season squad management update focusing on contract obligations:\n\nAppearance-Based Clauses:\n- Fernandez: 18/25 needed for €7M bonus trigger\n- Petrov: 32/30 appearances (captain bonus secured)\n- Young defender Collins: 22/25 for automatic renewal\n- Midfielder Zhang: 12/20 appearances (injury affected)\n\nInjury Management:\n- Current injury list: 4 players (down from 7 last month)\n- Average games missed per player: 3.2 (league average: 4.1)\n- Total wage savings from injured players: £850,000/month\n\nContract Performance Concerns:\n- Striker Wilson: 8 goals in 24 appearances (below 0.5 ratio requirement)\n- Defender Adams: 4 yellow cards away from suspension clause\n- Goalkeeper backup: Only 3 appearances (needs 8 for retention bonus)\n\nSquad Depth Analysis:\n- 23 senior players available for selection\n- Academy players integrated: 6 (3 with professional contracts)\n- Loan players contributing: 8 (5 in Championship, 3 in League One)\n\nRotation strategy balancing performance, fitness, and contractual obligations while maintaining competitive edge.\n\nRegards,\nMarco Silva\nHead Coach\nChelsea FC",
+    "from": "manager@chelsea.com",
+    "to": "board@chelsea.com",
+    "subject": "Squad Rotation Strategy - Injury Prevention and Contract Obligations",
+    "date": "November 25, 2040",
+    "body": "Board Members,\n\nMid-season squad management update focusing on contract obligations:\n\nAppearance-Based Clauses:\n- Fernandez: 18/25 needed for €7M bonus trigger\n- Petrov: 32/30 appearances (captain bonus secured)\n- Young defender Collins: 22/25 for automatic renewal\n- Midfielder Zhang: 12/20 appearances (injury affected)\n\nInjury Management:\n- Current injury list: 4 players (down from 7 last month)\n- Average games missed per player: 3.2 (league average: 4.1)\n- Total wage savings from injured players: £850,000/month\n\nContract Performance Concerns:\n- Striker Wilson: 8 goals in 24 appearances (below 0.5 ratio requirement)\n- Defender Adams: 4 yellow cards away from suspension clause\n- Goalkeeper backup: Only 3 appearances (needs 8 for retention bonus)\n\nSquad Depth Analysis:\n- 23 senior players available for selection\n- Academy players integrated: 6 (3 with professional contracts)\n- Loan players contributing: 8 (5 in Championship, 3 in League One)\n\nRotation strategy balancing performance, fitness, and contractual obligations while maintaining competitive edge.\n\nRegards,\nMarco Silva\nHead Coach\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Chelsea/email_004.msg",
+    "club": "Chelsea",
+    "filename": "email_004.msg",
+    "content": "From: commercial@chelsea.com\nTo: finance@chelsea.com\nSubject: Sponsorship Impact on Player Salaries - Nike Deal Extension\nDate: September 8, 2040\n\nFinance Team,\n\nNike partnership extension financial implications:\n\nNew Nike Deal (2040-2050):\n- Annual Value: £90 million (increase from £60M)\n- Total Value: £900 million over 10 years\n- Player Appearance Bonuses: 15% increase budget\n- Image Rights Pool: Additional £12 million annually\n\nSalary Cap Impact:\n- Additional Revenue allows 8% salary increase across squad\n- Current wage bill: £165 million annually\n- New ceiling: £178 million annually\n- Additional capacity: £13 million for new signings\n\nKey Player Marketing Values:\n- Sofia Petrov: £2.5M annually (captain, England international)\n- Gabriel Fernandez: £3.2M annually (Brazil star, global appeal) \n- Thomas Mueller: £1.8M annually (German international, goalkeeper)\n- Academy graduates: £500K annually (collective marketing value)\n\nCommercial Bonuses for Players:\n- Premier League winners: £500,000 per player\n- Champions League winners: £1 million per player\n- Individual awards (PFA, etc.): £100,000 bonus\n- Social media milestones: £25,000 per million followers\n\nThis deal positions us competitively for top-tier player acquisitions while maintaining FFP compliance.\n\nBest regards,\nSarah Williams\nCommercial Director\nChelsea FC",
+    "from": "commercial@chelsea.com",
+    "to": "finance@chelsea.com",
+    "subject": "Sponsorship Impact on Player Salaries - Nike Deal Extension",
+    "date": "September 8, 2040",
+    "body": "Finance Team,\n\nNike partnership extension financial implications:\n\nNew Nike Deal (2040-2050):\n- Annual Value: £90 million (increase from £60M)\n- Total Value: £900 million over 10 years\n- Player Appearance Bonuses: 15% increase budget\n- Image Rights Pool: Additional £12 million annually\n\nSalary Cap Impact:\n- Additional Revenue allows 8% salary increase across squad\n- Current wage bill: £165 million annually\n- New ceiling: £178 million annually\n- Additional capacity: £13 million for new signings\n\nKey Player Marketing Values:\n- Sofia Petrov: £2.5M annually (captain, England international)\n- Gabriel Fernandez: £3.2M annually (Brazil star, global appeal) \n- Thomas Mueller: £1.8M annually (German international, goalkeeper)\n- Academy graduates: £500K annually (collective marketing value)\n\nCommercial Bonuses for Players:\n- Premier League winners: £500,000 per player\n- Champions League winners: £1 million per player\n- Individual awards (PFA, etc.): £100,000 bonus\n- Social media milestones: £25,000 per million followers\n\nThis deal positions us competitively for top-tier player acquisitions while maintaining FFP compliance.\n\nBest regards,\nSarah Williams\nCommercial Director\nChelsea FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_002.msg",
+    "club": "Arsenal",
+    "filename": "email_002.msg",
+    "content": "From: contracts@arsenal.com\nTo: legal@playeragency.co.uk\nSubject: Incoming Transfer - David Yamamoto Fee Structure\nDate: July 8, 2040\n\nDear Legal Team,\n\nRegarding the transfer of David Yamamoto from FC Bayern Munich:\n\nTransfer Fee Breakdown:\n- Initial Fee: £45 million\n- Performance Add-ons: Up to £15 million\n  * £5M after 50 appearances\n  * £5M if Arsenal qualify for Champions League in 2040-41\n  * £5M if player scores 20+ goals in any season\n\nPlayer Contract Terms:\n- Length: 5 years\n- Weekly Wage: £120,000\n- Signing Bonus: £3 million\n- Agent Commission: 8% of total transfer value\n\nMedical scheduled for July 12th. All documentation must be completed by July 15th transfer deadline.\n\nYamamoto's stats from last season: 34 appearances, 18 goals, 12 assists in Bundesliga.\n\nPlease prepare standard Premier League registration paperwork.\n\nKind regards,\nMichael Foster\nContracts Manager\nArsenal FC",
+    "from": "contracts@arsenal.com",
+    "to": "legal@playeragency.co.uk",
+    "subject": "Incoming Transfer - David Yamamoto Fee Structure",
+    "date": "July 8, 2040",
+    "body": "Dear Legal Team,\n\nRegarding the transfer of David Yamamoto from FC Bayern Munich:\n\nTransfer Fee Breakdown:\n- Initial Fee: £45 million\n- Performance Add-ons: Up to £15 million\n  * £5M after 50 appearances\n  * £5M if Arsenal qualify for Champions League in 2040-41\n  * £5M if player scores 20+ goals in any season\n\nPlayer Contract Terms:\n- Length: 5 years\n- Weekly Wage: £120,000\n- Signing Bonus: £3 million\n- Agent Commission: 8% of total transfer value\n\nMedical scheduled for July 12th. All documentation must be completed by July 15th transfer deadline.\n\nYamamoto's stats from last season: 34 appearances, 18 goals, 12 assists in Bundesliga.\n\nPlease prepare standard Premier League registration paperwork.\n\nKind regards,\nMichael Foster\nContracts Manager\nArsenal FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_006.msg",
+    "club": "Arsenal",
+    "filename": "email_006.msg",
+    "content": "From: legal@arsenal.com\nTo: fifa.representatives@fifa.com\nSubject: International Transfer Certificate - Luca Moretti\nDate: January 18, 2040\n\nFIFA Transfer Committee,\n\nRequest for International Transfer Certificate for Luca Moretti:\n\nPlayer Details:\n- Full Name: Luca Antonio Moretti\n- Date of Birth: June 15, 1998\n- Previous Club: AC Milan (Serie A)\n- New Club: Arsenal FC (Premier League)\n- Position: Central Defender\n\nTransfer Details:\n- Transfer Fee: €35 million\n- Contract Length: 4 years\n- Weekly Wage: £95,000\n- Agent: SportStar Management\n\nPrevious Season Performance:\n- Serie A Appearances: 31\n- Goals: 4\n- Yellow Cards: 8\n- Red Cards: 0\n- Clean Sheets: 18\n\nMedical completed successfully on January 15, 2040.\nWork permit application approved by UK Home Office.\nPlayer registration required by January 31, 2040 transfer window deadline.\n\nAll documentation attached for FIFA approval.\n\nBest regards,\nCatherine Walsh\nLegal Director\nArsenal Football Club",
+    "from": "legal@arsenal.com",
+    "to": "fifa.representatives@fifa.com",
+    "subject": "International Transfer Certificate - Luca Moretti",
+    "date": "January 18, 2040",
+    "body": "FIFA Transfer Committee,\n\nRequest for International Transfer Certificate for Luca Moretti:\n\nPlayer Details:\n- Full Name: Luca Antonio Moretti\n- Date of Birth: June 15, 1998\n- Previous Club: AC Milan (Serie A)\n- New Club: Arsenal FC (Premier League)\n- Position: Central Defender\n\nTransfer Details:\n- Transfer Fee: €35 million\n- Contract Length: 4 years\n- Weekly Wage: £95,000\n- Agent: SportStar Management\n\nPrevious Season Performance:\n- Serie A Appearances: 31\n- Goals: 4\n- Yellow Cards: 8\n- Red Cards: 0\n- Clean Sheets: 18\n\nMedical completed successfully on January 15, 2040.\nWork permit application approved by UK Home Office.\nPlayer registration required by January 31, 2040 transfer window deadline.\n\nAll documentation attached for FIFA approval.\n\nBest regards,\nCatherine Walsh\nLegal Director\nArsenal Football Club"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_003.msg",
+    "club": "Arsenal",
+    "filename": "email_003.msg",
+    "content": "From: academy.director@arsenal.com\nTo: parents@youngtalent.co.uk\nSubject: Youth Contract Proposal - Jamie Chen (Age 17)\nDate: September 22, 2040\n\nDear Mr. and Mrs. Chen,\n\nArsenal is delighted to offer Jamie a professional youth contract following his outstanding performances in our academy.\n\nContract Offer:\n- Duration: 3 years (until June 2043)\n- Weekly Wage: £2,500 (Year 1), £4,000 (Year 2), £6,000 (Year 3)\n- Education Support: Full university tuition coverage\n- Accommodation: Club housing provided\n- Performance Bonuses: £5,000 per first-team appearance\n\nAcademy Performance Record:\n- U18 Premier League: 22 appearances, 11 goals, 7 assists\n- FA Youth Cup: 6 appearances, 4 goals\n- Training Camp MVP Award 2040\n\nDevelopment Path:\n- Continue with U21 squad integration\n- First-team training opportunities with senior players\n- Potential loan to Championship club in Year 2\n\nJamie shows exceptional potential as a central midfielder. Our coaching staff believes he could break into the first team within 2-3 years with proper development.\n\nPlease schedule a meeting to discuss further details.\n\nBest wishes,\nTony Adams Jr.\nAcademy Director\nArsenal FC",
+    "from": "academy.director@arsenal.com",
+    "to": "parents@youngtalent.co.uk",
+    "subject": "Youth Contract Proposal - Jamie Chen (Age 17)",
+    "date": "September 22, 2040",
+    "body": "Dear Mr. and Mrs. Chen,\n\nArsenal is delighted to offer Jamie a professional youth contract following his outstanding performances in our academy.\n\nContract Offer:\n- Duration: 3 years (until June 2043)\n- Weekly Wage: £2,500 (Year 1), £4,000 (Year 2), £6,000 (Year 3)\n- Education Support: Full university tuition coverage\n- Accommodation: Club housing provided\n- Performance Bonuses: £5,000 per first-team appearance\n\nAcademy Performance Record:\n- U18 Premier League: 22 appearances, 11 goals, 7 assists\n- FA Youth Cup: 6 appearances, 4 goals\n- Training Camp MVP Award 2040\n\nDevelopment Path:\n- Continue with U21 squad integration\n- First-team training opportunities with senior players\n- Potential loan to Championship club in Year 2\n\nJamie shows exceptional potential as a central midfielder. Our coaching staff believes he could break into the first team within 2-3 years with proper development.\n\nPlease schedule a meeting to discuss further details.\n\nBest wishes,\nTony Adams Jr.\nAcademy Director\nArsenal FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_007.msg",
+    "club": "Arsenal",
+    "filename": "email_007.msg",
+    "content": "From: performance.analysis@arsenal.com\nTo: manager@arsenal.com\nSubject: Contract Performance Metrics Review - Q4 2040\nDate: December 20, 2040\n\nMikel,\n\nPerformance analysis for contract-related bonuses and renewal considerations:\n\nBonus Payments Triggered (2040 Season):\n- Rodriguez: £750,000 (15 goals × £50k per goal)\n- Yamamoto: £200,000 (8 goals × £25k per goal - prorated contract)\n- Henderson: £350,000 (14 assists × £25k per assist)\n- Santos: £120,000 (12 assists × £10k per assist - captain bonus)\n\nAutomatic Extension Clauses:\n- Thompson: 12 appearances (needs 25 for automatic renewal)\n- Chen: 8 first-team appearances (triggers youth contract upgrade)\n- Larsson: 35 appearances (triggers one-year extension option)\n\nPerformance Concerns:\n- Striker Wilson: 22 appearances, 4 goals (below 0.5 goals/game threshold)\n- Midfielder Jones: 15 appearances, 2 assists (performance clause not met)\n\nContract Renegotiation Priorities:\n1. Santos (captain, consistent performer)\n2. Rodriguez (top scorer, market value increased)\n3. Larsson (reliable goalkeeper, clean sheet record)\n\nRevenue impact of bonuses: £1.42 million for 2040 season.\n\nBest regards,\nAlex Murphy\nPerformance Analyst",
+    "from": "performance.analysis@arsenal.com",
+    "to": "manager@arsenal.com",
+    "subject": "Contract Performance Metrics Review - Q4 2040",
+    "date": "December 20, 2040",
+    "body": "Mikel,\n\nPerformance analysis for contract-related bonuses and renewal considerations:\n\nBonus Payments Triggered (2040 Season):\n- Rodriguez: £750,000 (15 goals × £50k per goal)\n- Yamamoto: £200,000 (8 goals × £25k per goal - prorated contract)\n- Henderson: £350,000 (14 assists × £25k per assist)\n- Santos: £120,000 (12 assists × £10k per assist - captain bonus)\n\nAutomatic Extension Clauses:\n- Thompson: 12 appearances (needs 25 for automatic renewal)\n- Chen: 8 first-team appearances (triggers youth contract upgrade)\n- Larsson: 35 appearances (triggers one-year extension option)\n\nPerformance Concerns:\n- Striker Wilson: 22 appearances, 4 goals (below 0.5 goals/game threshold)\n- Midfielder Jones: 15 appearances, 2 assists (performance clause not met)\n\nContract Renegotiation Priorities:\n1. Santos (captain, consistent performer)\n2. Rodriguez (top scorer, market value increased)\n3. Larsson (reliable goalkeeper, clean sheet record)\n\nRevenue impact of bonuses: £1.42 million for 2040 season.\n\nBest regards,\nAlex Murphy\nPerformance Analyst"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_010.msg",
+    "club": "Arsenal",
+    "filename": "email_010.msg",
+    "content": "From: hr@arsenal.com\nTo: all.staff@arsenal.com\nSubject: Staff Contract Updates - Support Staff Renewals\nDate: May 14, 2040\n\nAll Staff,\n\nAnnual support staff contract renewals effective July 1, 2040:\n\nCoaching Staff:\n- Assistant Manager Paul Silva: 3-year extension, £150,000 annually\n- Goalkeeping Coach Maria Santos: 2-year renewal, £85,000 annually\n- Fitness Coach David Kim: 1-year extension, £75,000 annually\n\nPerformance Staff:\n- Head Physiotherapist: £90,000 annually (performance bonus for <5% injury rate)\n- Chief Scout Network: £120,000 base + travel allowances\n- Academy Coordinator: £65,000 annually\n\nKey Performance Indicators:\n- First Team Availability Rate: Target 85% (current 78%)\n- Academy Graduate Integration: Target 2 players per season\n- Scouting Success Rate: 70% of recommended signings must complete 2+ seasons\n\nContract includes standard Premier League compliance clauses and confidentiality agreements.\n\nStaff performance directly impacts player development and team success. These renewals reflect our commitment to maintaining elite support structure.\n\nPlease confirm acceptance by May 25th.\n\nBest regards,\nJennifer Walsh\nHead of Human Resources\nArsenal FC",
+    "from": "hr@arsenal.com",
+    "to": "all.staff@arsenal.com",
+    "subject": "Staff Contract Updates - Support Staff Renewals",
+    "date": "May 14, 2040",
+    "body": "All Staff,\n\nAnnual support staff contract renewals effective July 1, 2040:\n\nCoaching Staff:\n- Assistant Manager Paul Silva: 3-year extension, £150,000 annually\n- Goalkeeping Coach Maria Santos: 2-year renewal, £85,000 annually\n- Fitness Coach David Kim: 1-year extension, £75,000 annually\n\nPerformance Staff:\n- Head Physiotherapist: £90,000 annually (performance bonus for <5% injury rate)\n- Chief Scout Network: £120,000 base + travel allowances\n- Academy Coordinator: £65,000 annually\n\nKey Performance Indicators:\n- First Team Availability Rate: Target 85% (current 78%)\n- Academy Graduate Integration: Target 2 players per season\n- Scouting Success Rate: 70% of recommended signings must complete 2+ seasons\n\nContract includes standard Premier League compliance clauses and confidentiality agreements.\n\nStaff performance directly impacts player development and team success. These renewals reflect our commitment to maintaining elite support structure.\n\nPlease confirm acceptance by May 25th.\n\nBest regards,\nJennifer Walsh\nHead of Human Resources\nArsenal FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_008.msg",
+    "club": "Arsenal",
+    "filename": "email_008.msg",
+    "content": "From: chairman@arsenal.com\nTo: premier.league@premierleague.com\nSubject: FFP Compliance Filing - Arsenal FC 2040\nDate: August 30, 2040\n\nPremier League Financial Fair Play Department,\n\nArsenal FC's Financial Fair Play compliance submission for 2040:\n\nRevenue Breakdown:\n- Matchday Revenue: £78 million\n- Broadcasting Revenue: £142 million  \n- Commercial Revenue: £156 million\n- Total Revenue: £376 million\n\nExpenditure Summary:\n- Player Wages: £145.6 million (38.7% of revenue)\n- Transfer Fees: £95 million net spend\n- Operational Costs: £89 million\n- Total Expenditure: £329.6 million\n\nPlayer Trading:\n- Transfers In: £125 million (Yamamoto £60M, Moretti £35M, others £30M)\n- Transfers Out: £30 million (academy graduates and squad players)\n- Net Spend: £95 million\n\nSquad Cost Analysis:\n- Average Weekly Wage: £78,000\n- Squad Size: 36 players (25 senior, 11 academy)\n- Amortized Transfer Costs: £45 million annually\n\nFFP Compliance: PASSED\nProfit/Loss: £46.4 million profit\nSustainability Ratio: 87.7%\n\nRegards,\nSir Henry Norris III\nChairman, Arsenal FC",
+    "from": "chairman@arsenal.com",
+    "to": "premier.league@premierleague.com",
+    "subject": "FFP Compliance Filing - Arsenal FC 2040",
+    "date": "August 30, 2040",
+    "body": "Premier League Financial Fair Play Department,\n\nArsenal FC's Financial Fair Play compliance submission for 2040:\n\nRevenue Breakdown:\n- Matchday Revenue: £78 million\n- Broadcasting Revenue: £142 million  \n- Commercial Revenue: £156 million\n- Total Revenue: £376 million\n\nExpenditure Summary:\n- Player Wages: £145.6 million (38.7% of revenue)\n- Transfer Fees: £95 million net spend\n- Operational Costs: £89 million\n- Total Expenditure: £329.6 million\n\nPlayer Trading:\n- Transfers In: £125 million (Yamamoto £60M, Moretti £35M, others £30M)\n- Transfers Out: £30 million (academy graduates and squad players)\n- Net Spend: £95 million\n\nSquad Cost Analysis:\n- Average Weekly Wage: £78,000\n- Squad Size: 36 players (25 senior, 11 academy)\n- Amortized Transfer Costs: £45 million annually\n\nFFP Compliance: PASSED\nProfit/Loss: £46.4 million profit\nSustainability Ratio: 87.7%\n\nRegards,\nSir Henry Norris III\nChairman, Arsenal FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_009.msg",
+    "club": "Arsenal",
+    "filename": "email_009.msg",
+    "content": "From: loan.coordinator@arsenal.com\nTo: sporting.director@championship.club.com\nSubject: Loan Agreement - Oliver Park (Arsenal Academy)\nDate: June 5, 2040\n\nDear Mr. Richards,\n\nArsenal FC confirms the loan agreement for Oliver Park:\n\nPlayer Details:\n- Age: 20\n- Position: Left Winger\n- Arsenal Appearances: 3 (all cup competitions)\n- Academy Stats: 45 U21 appearances, 18 goals, 12 assists\n\nLoan Terms:\n- Duration: Full 2040-41 season\n- Loan Fee: £250,000\n- Wage Contribution: Arsenal pays 60% (£18,000/week)\n- Your Club Pays: 40% (£12,000/week)\n\nPerformance Clauses:\n- Recall Option: January 2041 if 25+ Championship appearances\n- Appearance Bonus: £5,000 per game over 30 appearances\n- Development Bonus: £50,000 if promoted to Premier League\n\nConditions:\n- Must start minimum 20 games (injury permitting)\n- Regular progress reports required\n- No option to purchase included\n\nPark needs regular first-team football to develop. Your Championship environment will be perfect for his progression.\n\nConfirmation needed by June 10th.\n\nBest regards,  \nRyan Green\nLoan Coordinator\nArsenal FC",
+    "from": "loan.coordinator@arsenal.com",
+    "to": "sporting.director@championship.club.com",
+    "subject": "Loan Agreement - Oliver Park (Arsenal Academy)",
+    "date": "June 5, 2040",
+    "body": "Dear Mr. Richards,\n\nArsenal FC confirms the loan agreement for Oliver Park:\n\nPlayer Details:\n- Age: 20\n- Position: Left Winger\n- Arsenal Appearances: 3 (all cup competitions)\n- Academy Stats: 45 U21 appearances, 18 goals, 12 assists\n\nLoan Terms:\n- Duration: Full 2040-41 season\n- Loan Fee: £250,000\n- Wage Contribution: Arsenal pays 60% (£18,000/week)\n- Your Club Pays: 40% (£12,000/week)\n\nPerformance Clauses:\n- Recall Option: January 2041 if 25+ Championship appearances\n- Appearance Bonus: £5,000 per game over 30 appearances\n- Development Bonus: £50,000 if promoted to Premier League\n\nConditions:\n- Must start minimum 20 games (injury permitting)\n- Regular progress reports required\n- No option to purchase included\n\nPark needs regular first-team football to develop. Your Championship environment will be perfect for his progression.\n\nConfirmation needed by June 10th.\n\nBest regards,  \nRyan Green\nLoan Coordinator\nArsenal FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_001.msg",
+    "club": "Arsenal",
+    "filename": "email_001.msg",
+    "content": "From: transfer.director@arsenal.com\nTo: agent@sportsmanagement.com\nSubject: Re: Contract Extension - Marcus Rodriguez\nDate: March 15, 2040\n\nDear Mr. Thompson,\n\nFollowing our productive discussions yesterday, I'm pleased to confirm Arsenal's formal offer for Marcus Rodriguez's contract extension:\n\nContract Details:\n- Duration: 4 years (until June 2044)\n- Base Salary: £180,000 per week\n- Performance Bonuses: £50,000 per Premier League goal, £25,000 per assist\n- Champions League Bonus: £500,000 if qualified\n- Appearance Fee: £10,000 per starting XI appearance\n- Transfer Release Clause: £85 million (active from July 2042)\n\nAdditional Terms:\n- Image rights: 50/50 split with club\n- Private medical insurance for family\n- Company car allowance: £50,000 annually\n\nMarcus has appeared in 28 matches this season, scoring 15 goals and providing 8 assists. His contribution has been exceptional, and we believe this offer reflects his value to the squad.\n\nPlease review with your client and let us know your thoughts by March 20th.\n\nBest regards,\nSarah Mitchell\nTransfer Director\nArsenal Football Club",
+    "from": "transfer.director@arsenal.com",
+    "to": "agent@sportsmanagement.com",
+    "subject": "Re: Contract Extension - Marcus Rodriguez",
+    "date": "March 15, 2040",
+    "body": "Dear Mr. Thompson,\n\nFollowing our productive discussions yesterday, I'm pleased to confirm Arsenal's formal offer for Marcus Rodriguez's contract extension:\n\nContract Details:\n- Duration: 4 years (until June 2044)\n- Base Salary: £180,000 per week\n- Performance Bonuses: £50,000 per Premier League goal, £25,000 per assist\n- Champions League Bonus: £500,000 if qualified\n- Appearance Fee: £10,000 per starting XI appearance\n- Transfer Release Clause: £85 million (active from July 2042)\n\nAdditional Terms:\n- Image rights: 50/50 split with club\n- Private medical insurance for family\n- Company car allowance: £50,000 annually\n\nMarcus has appeared in 28 matches this season, scoring 15 goals and providing 8 assists. His contribution has been exceptional, and we believe this offer reflects his value to the squad.\n\nPlease review with your client and let us know your thoughts by March 20th.\n\nBest regards,\nSarah Mitchell\nTransfer Director\nArsenal Football Club"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_005.msg",
+    "club": "Arsenal",
+    "filename": "email_005.msg",
+    "content": "From: medical@arsenal.com\nTo: manager@arsenal.com\nSubject: Player Fitness Update - Injury Report\nDate: November 12, 2040\n\nMikel,\n\nWeekly medical update on squad availability:\n\nInjured Players:\n- Rodriguez (hamstring): 2-3 weeks, 0 appearances since injury\n- Thompson (ankle): 4-6 weeks, season total: 12 appearances, 3 goals\n- Williams (knee): Season ended, requires surgery (season stats: 8 appearances)\n\nReturning Players:\n- Yamamoto: Cleared for full training, missed 4 matches\n- Chen: Available for selection, missed 2 weeks\n\nContract Implications:\n- Rodriguez appearance bonus suspended during injury\n- Thompson may not reach 25-game threshold for automatic extension\n- Williams' injury may affect summer contract negotiations\n\nFitness Stats (Season to Date):\n- Squad Availability: 78% average\n- Games Missed Due to Injury: 156 total\n- Average Recovery Time: 3.2 weeks\n\nRecommended squad rotation for upcoming fixtures to prevent further injuries.\n\nDr. James Morrison\nHead of Medical Services\nArsenal FC",
+    "from": "medical@arsenal.com",
+    "to": "manager@arsenal.com",
+    "subject": "Player Fitness Update - Injury Report",
+    "date": "November 12, 2040",
+    "body": "Mikel,\n\nWeekly medical update on squad availability:\n\nInjured Players:\n- Rodriguez (hamstring): 2-3 weeks, 0 appearances since injury\n- Thompson (ankle): 4-6 weeks, season total: 12 appearances, 3 goals\n- Williams (knee): Season ended, requires surgery (season stats: 8 appearances)\n\nReturning Players:\n- Yamamoto: Cleared for full training, missed 4 matches\n- Chen: Available for selection, missed 2 weeks\n\nContract Implications:\n- Rodriguez appearance bonus suspended during injury\n- Thompson may not reach 25-game threshold for automatic extension\n- Williams' injury may affect summer contract negotiations\n\nFitness Stats (Season to Date):\n- Squad Availability: 78% average\n- Games Missed Due to Injury: 156 total\n- Average Recovery Time: 3.2 weeks\n\nRecommended squad rotation for upcoming fixtures to prevent further injuries.\n\nDr. James Morrison\nHead of Medical Services\nArsenal FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Arsenal/email_004.msg",
+    "club": "Arsenal",
+    "filename": "email_004.msg",
+    "content": "From: ceo@arsenal.com\nTo: board@arsenal.com\nSubject: Salary Cap Compliance Report - Q3 2040\nDate: October 5, 2040\n\nBoard Members,\n\nQuarterly salary expenditure analysis for compliance review:\n\nCurrent Squad Costs:\n- Total Weekly Wages: £2.8 million\n- Annual Projection: £145.6 million\n- Premier League Salary Cap: 70% of revenue\n- Current Ratio: 68% (compliant)\n\nTop Earners Analysis:\n1. Captain Alessandro Santos: £250,000/week (32 appearances, 2 goals, 12 assists)\n2. Marcus Rodriguez: £180,000/week (28 appearances, 15 goals, 8 assists)\n3. Goalkeeper Erik Larsson: £160,000/week (35 appearances, 15 clean sheets)\n4. David Yamamoto: £120,000/week (18 appearances since July, 8 goals)\n5. Tom Henderson: £110,000/week (29 appearances, 6 goals, 14 assists)\n\nUpcoming Contract Renewals:\n- Santos (expires June 2041): Requesting £280,000/week\n- Larsson (expires June 2042): Requesting £180,000/week\n\nRevenue projections show we can accommodate Santos' increase while maintaining compliance.\n\nRegards,\nVictoria Clarke\nChief Executive Officer",
+    "from": "ceo@arsenal.com",
+    "to": "board@arsenal.com",
+    "subject": "Salary Cap Compliance Report - Q3 2040",
+    "date": "October 5, 2040",
+    "body": "Board Members,\n\nQuarterly salary expenditure analysis for compliance review:\n\nCurrent Squad Costs:\n- Total Weekly Wages: £2.8 million\n- Annual Projection: £145.6 million\n- Premier League Salary Cap: 70% of revenue\n- Current Ratio: 68% (compliant)\n\nTop Earners Analysis:\n1. Captain Alessandro Santos: £250,000/week (32 appearances, 2 goals, 12 assists)\n2. Marcus Rodriguez: £180,000/week (28 appearances, 15 goals, 8 assists)\n3. Goalkeeper Erik Larsson: £160,000/week (35 appearances, 15 clean sheets)\n4. David Yamamoto: £120,000/week (18 appearances since July, 8 goals)\n5. Tom Henderson: £110,000/week (29 appearances, 6 goals, 14 assists)\n\nUpcoming Contract Renewals:\n- Santos (expires June 2041): Requesting £280,000/week\n- Larsson (expires June 2042): Requesting £180,000/week\n\nRevenue projections show we can accommodate Santos' increase while maintaining compliance.\n\nRegards,\nVictoria Clarke\nChief Executive Officer"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_002.msg",
+    "club": "Liverpool",
+    "filename": "email_002.msg",
+    "content": "From: academy@liverpool.com\nTo: parents@youthfootball.com\nSubject: Professional Contract Offer - Isabella Henderson (Age 18)\nDate: May 22, 2040\n\nDear Mr. and Mrs. Henderson,\n\nLiverpool FC Women's Academy is delighted to offer Isabella her first professional contract:\n\nContract Details:\n- Duration: 3 years (until June 2043)\n- Weekly Wage: £8,000 (Year 1), £12,000 (Year 2), £18,000 (Year 3)\n- Appearance Bonus: £2,000 per Women's Super League start\n- Goal Bonus: £5,000 per goal scored\n- International Bonus: £10,000 per England senior cap\n\nAcademy Record:\n- U18 Women's Premier League: 34 appearances, 42 goals\n- FA Youth Cup: 8 appearances, 11 goals\n- England U18: 15 caps, 18 goals\n- Academy Player of the Year 2040\n\nProfessional Pathway:\n- Immediate integration with first team squad\n- Mentorship program with senior players\n- Personal development plan with coaching staff\n- Media training and commercial opportunities\n\nContract Incentives:\n- First team debut: £25,000 bonus\n- 10 WSL appearances: £50,000 bonus\n- England senior call-up: £75,000 bonus\n- WSL Golden Boot: £100,000 bonus\n\nDevelopment Opportunities:\n- Training with men's U21 squad (tactical development)\n- Individual coaching sessions with specialist coaches\n- Sports science and nutrition support\n- Educational support for university studies\n\nIsabella has exceptional potential to become a key player for both club and country.\n\nYours sincerely,\nVicky Jepson\nWomen's Academy Director\nLiverpool FC",
+    "from": "academy@liverpool.com",
+    "to": "parents@youthfootball.com",
+    "subject": "Professional Contract Offer - Isabella Henderson (Age 18)",
+    "date": "May 22, 2040",
+    "body": "Dear Mr. and Mrs. Henderson,\n\nLiverpool FC Women's Academy is delighted to offer Isabella her first professional contract:\n\nContract Details:\n- Duration: 3 years (until June 2043)\n- Weekly Wage: £8,000 (Year 1), £12,000 (Year 2), £18,000 (Year 3)\n- Appearance Bonus: £2,000 per Women's Super League start\n- Goal Bonus: £5,000 per goal scored\n- International Bonus: £10,000 per England senior cap\n\nAcademy Record:\n- U18 Women's Premier League: 34 appearances, 42 goals\n- FA Youth Cup: 8 appearances, 11 goals\n- England U18: 15 caps, 18 goals\n- Academy Player of the Year 2040\n\nProfessional Pathway:\n- Immediate integration with first team squad\n- Mentorship program with senior players\n- Personal development plan with coaching staff\n- Media training and commercial opportunities\n\nContract Incentives:\n- First team debut: £25,000 bonus\n- 10 WSL appearances: £50,000 bonus\n- England senior call-up: £75,000 bonus\n- WSL Golden Boot: £100,000 bonus\n\nDevelopment Opportunities:\n- Training with men's U21 squad (tactical development)\n- Individual coaching sessions with specialist coaches\n- Sports science and nutrition support\n- Educational support for university studies\n\nIsabella has exceptional potential to become a key player for both club and country.\n\nYours sincerely,\nVicky Jepson\nWomen's Academy Director\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_006.msg",
+    "club": "Liverpool",
+    "filename": "email_006.msg",
+    "content": "From: performance@liverpool.com\nTo: manager@liverpool.com\nSubject: Player Performance Analysis - Contract Bonus Tracking\nDate: November 8, 2040\n\nJurgen,\n\nMid-season performance review focusing on contractual targets:\n\nGoal Bonus Achievements:\n- Salah Jr.: 22 goals (£2.2M in bonuses earned)\n- Nunez II: 16 goals (£1.6M in bonuses earned)  \n- Mane Jr.: 13 goals (£1.3M in bonuses earned)\n- Havertz Jr.: 8 goals since joining (£200K earned)\n\nAssist Bonus Achievements:\n- Alexander-Arnold III: 14 assists (£700K earned)\n- Salah Jr.: 11 assists (£550K earned)\n- Mane Jr.: 9 assists (£450K earned)\n- Diaz Jr.: 7 assists (£350K earned)\n\nAppearance Thresholds:\n- Van Dijk III: 31/35 appearances (on track for full bonus)\n- Jones II: 19/25 appearances (needs 6 more for extension)\n- Kelleher II: 28/30 appearances (clean sheet bonus active)\n- Morton: 8/20 appearances (needs consistent selection)\n\nPerformance Concerns:\n- Midfielder Elliott: 12 appearances, 1 goal (below target rate)\n- Defender Phillips: 15 appearances, high error rate affecting bonus\n- Forward Origi Jr.: 6 appearances, 1 goal (limited impact)\n\nContract Incentive Recommendations:\n- Continue rotating Jones to reach appearance threshold\n- Utilize Salah Jr. strategically to maximize goal bonuses\n- Monitor Van Dijk's minutes to prevent injury before bonus target\n\nTotal Bonus Expenditure (Season to Date): £8.7 million\nProjected Annual Bonus Cost: £12.4 million\n\nAndreas Kornmayer\nHead of Performance Analysis\nLiverpool FC",
+    "from": "performance@liverpool.com",
+    "to": "manager@liverpool.com",
+    "subject": "Player Performance Analysis - Contract Bonus Tracking",
+    "date": "November 8, 2040",
+    "body": "Jurgen,\n\nMid-season performance review focusing on contractual targets:\n\nGoal Bonus Achievements:\n- Salah Jr.: 22 goals (£2.2M in bonuses earned)\n- Nunez II: 16 goals (£1.6M in bonuses earned)  \n- Mane Jr.: 13 goals (£1.3M in bonuses earned)\n- Havertz Jr.: 8 goals since joining (£200K earned)\n\nAssist Bonus Achievements:\n- Alexander-Arnold III: 14 assists (£700K earned)\n- Salah Jr.: 11 assists (£550K earned)\n- Mane Jr.: 9 assists (£450K earned)\n- Diaz Jr.: 7 assists (£350K earned)\n\nAppearance Thresholds:\n- Van Dijk III: 31/35 appearances (on track for full bonus)\n- Jones II: 19/25 appearances (needs 6 more for extension)\n- Kelleher II: 28/30 appearances (clean sheet bonus active)\n- Morton: 8/20 appearances (needs consistent selection)\n\nPerformance Concerns:\n- Midfielder Elliott: 12 appearances, 1 goal (below target rate)\n- Defender Phillips: 15 appearances, high error rate affecting bonus\n- Forward Origi Jr.: 6 appearances, 1 goal (limited impact)\n\nContract Incentive Recommendations:\n- Continue rotating Jones to reach appearance threshold\n- Utilize Salah Jr. strategically to maximize goal bonuses\n- Monitor Van Dijk's minutes to prevent injury before bonus target\n\nTotal Bonus Expenditure (Season to Date): £8.7 million\nProjected Annual Bonus Cost: £12.4 million\n\nAndreas Kornmayer\nHead of Performance Analysis\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_003.msg",
+    "club": "Liverpool",
+    "filename": "email_003.msg",
+    "content": "From: medical@liverpool.com\nTo: manager@liverpool.com\nSubject: Injury Update - Squad Availability Report\nDate: September 14, 2040\n\nJurgen,\n\nWeekly medical bulletin and contract implications:\n\nCurrently Injured:\n- Virgil van Dijk III (hamstring): 3-4 weeks out\n  Season stats: 28 appearances, 3 goals, leadership bonus at risk\n- Sadio Mane Jr. (ankle): 2 weeks out  \n  Season stats: 22 appearances, 11 goals, 8 assists\n- Curtis Jones II (groin): 1 week out\n  Season stats: 15 appearances, needs 25 for automatic extension\n\nReturning to Training:\n- Darwin Nunez II: Full fitness restored, available for selection\n  Missed 6 weeks, season stats: 18 appearances, 14 goals\n- Tyler Morton: Cleared for competitive matches\n  Season stats: 12 appearances, 3 assists\n\nContract Performance Impact:\n- Van Dijk's appearance bonus (£20K per game) suspended during injury\n- Mane's goal bonus accumulation paused (currently at 11 goals)\n- Jones risks missing extension threshold (needs 10 more appearances)\n\nSquad Fitness Metrics:\n- Overall availability: 82% (above league average of 78%)\n- Average injury duration: 18 days\n- Reinjury rate: 8% (excellent compared to 15% league average)\n\nMedical Recommendations:\n- Rotate key players in domestic cup matches\n- Implement additional recovery protocols for players over 30\n- Monitor Jones' minutes carefully to reach contract threshold\n\nDr. Sarah Wilson\nHead of Medical Services\nLiverpool FC",
+    "from": "medical@liverpool.com",
+    "to": "manager@liverpool.com",
+    "subject": "Injury Update - Squad Availability Report",
+    "date": "September 14, 2040",
+    "body": "Jurgen,\n\nWeekly medical bulletin and contract implications:\n\nCurrently Injured:\n- Virgil van Dijk III (hamstring): 3-4 weeks out\n  Season stats: 28 appearances, 3 goals, leadership bonus at risk\n- Sadio Mane Jr. (ankle): 2 weeks out  \n  Season stats: 22 appearances, 11 goals, 8 assists\n- Curtis Jones II (groin): 1 week out\n  Season stats: 15 appearances, needs 25 for automatic extension\n\nReturning to Training:\n- Darwin Nunez II: Full fitness restored, available for selection\n  Missed 6 weeks, season stats: 18 appearances, 14 goals\n- Tyler Morton: Cleared for competitive matches\n  Season stats: 12 appearances, 3 assists\n\nContract Performance Impact:\n- Van Dijk's appearance bonus (£20K per game) suspended during injury\n- Mane's goal bonus accumulation paused (currently at 11 goals)\n- Jones risks missing extension threshold (needs 10 more appearances)\n\nSquad Fitness Metrics:\n- Overall availability: 82% (above league average of 78%)\n- Average injury duration: 18 days\n- Reinjury rate: 8% (excellent compared to 15% league average)\n\nMedical Recommendations:\n- Rotate key players in domestic cup matches\n- Implement additional recovery protocols for players over 30\n- Monitor Jones' minutes carefully to reach contract threshold\n\nDr. Sarah Wilson\nHead of Medical Services\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_007.msg",
+    "club": "Liverpool",
+    "filename": "email_007.msg",
+    "content": "From: legal@liverpool.com\nTo: pfa@thepfa.com\nSubject: Player Welfare Inquiry - Workload Management\nDate: August 28, 2040\n\nProfessional Footballers' Association,\n\nResponse to inquiry regarding player workload and contract obligations:\n\nPlayer Welfare Protocols:\n- Maximum 90 matches per season (including internationals)\n- Mandatory rest periods: 3 weeks summer, 2 weeks winter\n- Load monitoring: GPS tracking and heart rate analysis\n- Mental health support: Weekly sessions with sports psychologist\n\nContract Workload Clauses:\n- Appearance bonuses cap at 40 matches per season\n- International duty protected (no club penalty for national team selection)\n- Injury protection: Contracts extended for long-term injuries (6+ months)\n- Rest periods guaranteed between European and domestic fixtures\n\nPlayer Workload Analysis (2040 Season):\n- Average appearances per player: 34 matches\n- Players exceeding 45 appearances: 3 (all voluntary)\n- Injury rate: 6.2% (below league average of 8.1%)\n- Player satisfaction rating: 94% (annual survey)\n\nSpecific Player Concerns Addressed:\n- Salah Jr.: Workload managed through tactical substitutions\n- Van Dijk III: International breaks used for recovery\n- Young players: Limited to 35 appearances maximum\n\nContract Modifications:\n- Rest clauses added to all new contracts\n- Performance bonuses balanced with welfare requirements\n- Player union representative on contract committee\n\nLiverpool FC prioritizes player welfare while maintaining competitive standards and contractual fairness.\n\nYours faithfully,\nRebecca Murphy\nLegal Director\nLiverpool FC",
+    "from": "legal@liverpool.com",
+    "to": "pfa@thepfa.com",
+    "subject": "Player Welfare Inquiry - Workload Management",
+    "date": "August 28, 2040",
+    "body": "Professional Footballers' Association,\n\nResponse to inquiry regarding player workload and contract obligations:\n\nPlayer Welfare Protocols:\n- Maximum 90 matches per season (including internationals)\n- Mandatory rest periods: 3 weeks summer, 2 weeks winter\n- Load monitoring: GPS tracking and heart rate analysis\n- Mental health support: Weekly sessions with sports psychologist\n\nContract Workload Clauses:\n- Appearance bonuses cap at 40 matches per season\n- International duty protected (no club penalty for national team selection)\n- Injury protection: Contracts extended for long-term injuries (6+ months)\n- Rest periods guaranteed between European and domestic fixtures\n\nPlayer Workload Analysis (2040 Season):\n- Average appearances per player: 34 matches\n- Players exceeding 45 appearances: 3 (all voluntary)\n- Injury rate: 6.2% (below league average of 8.1%)\n- Player satisfaction rating: 94% (annual survey)\n\nSpecific Player Concerns Addressed:\n- Salah Jr.: Workload managed through tactical substitutions\n- Van Dijk III: International breaks used for recovery\n- Young players: Limited to 35 appearances maximum\n\nContract Modifications:\n- Rest clauses added to all new contracts\n- Performance bonuses balanced with welfare requirements\n- Player union representative on contract committee\n\nLiverpool FC prioritizes player welfare while maintaining competitive standards and contractual fairness.\n\nYours faithfully,\nRebecca Murphy\nLegal Director\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_010.msg",
+    "club": "Liverpool",
+    "filename": "email_010.msg",
+    "content": "From: ceo@liverpool.com\nTo: fsg@fsg.com\nSubject: Annual Player Investment Review - 2040 Season\nDate: December 28, 2040\n\nFenway Sports Group,\n\nComprehensive review of player-related investments and returns for 2040:\n\nTransfer Activity:\n- Gross Investment: £178 million\n- Player Sales: £45 million\n- Net Investment: £133 million\n- Key Acquisitions: Havertz Jr. (£58M), Fernandez (£38M), Others (£82M)\n\nWage Structure Analysis:\n- Total Annual Wages: £198 million\n- Performance Bonuses Paid: £12.4 million\n- Average Squad Salary: £89,000/week\n- Wage Growth: 8% year-over-year (controlled increase)\n\nPerformance Returns:\n- League Position: 1st (Champions League qualified)\n- Champions League: Semi-finals (€45M prize money)\n- Domestic Cups: EFL Cup winners, FA Cup quarter-finals\n- Total Prize Money: £78 million\n\nContract Value Creation:\n- Squad Market Value: £567 million (12% increase from 2039)\n- Academy Player Value: £67 million (Henderson, Blair, Gordon, etc.)\n- Contract Extensions: £45 million future value secured\n\nFinancial Performance:\n- Revenue: £412 million (8% growth)\n- Operating Profit: £89 million\n- EBITDA: £127 million\n- FFP Compliance: Excellent (48% wage ratio)\n\nStrategic Outcomes:\n- Title challenge sustained\n- Young talent integrated successfully\n- Financial sustainability maintained\n- Global brand value enhanced\n\nPlayer investment strategy delivering exceptional returns both on and off the pitch.\n\nBest regards,\nBilly Hogan\nChief Executive Officer\nLiverpool FC",
+    "from": "ceo@liverpool.com",
+    "to": "fsg@fsg.com",
+    "subject": "Annual Player Investment Review - 2040 Season",
+    "date": "December 28, 2040",
+    "body": "Fenway Sports Group,\n\nComprehensive review of player-related investments and returns for 2040:\n\nTransfer Activity:\n- Gross Investment: £178 million\n- Player Sales: £45 million\n- Net Investment: £133 million\n- Key Acquisitions: Havertz Jr. (£58M), Fernandez (£38M), Others (£82M)\n\nWage Structure Analysis:\n- Total Annual Wages: £198 million\n- Performance Bonuses Paid: £12.4 million\n- Average Squad Salary: £89,000/week\n- Wage Growth: 8% year-over-year (controlled increase)\n\nPerformance Returns:\n- League Position: 1st (Champions League qualified)\n- Champions League: Semi-finals (€45M prize money)\n- Domestic Cups: EFL Cup winners, FA Cup quarter-finals\n- Total Prize Money: £78 million\n\nContract Value Creation:\n- Squad Market Value: £567 million (12% increase from 2039)\n- Academy Player Value: £67 million (Henderson, Blair, Gordon, etc.)\n- Contract Extensions: £45 million future value secured\n\nFinancial Performance:\n- Revenue: £412 million (8% growth)\n- Operating Profit: £89 million\n- EBITDA: £127 million\n- FFP Compliance: Excellent (48% wage ratio)\n\nStrategic Outcomes:\n- Title challenge sustained\n- Young talent integrated successfully\n- Financial sustainability maintained\n- Global brand value enhanced\n\nPlayer investment strategy delivering exceptional returns both on and off the pitch.\n\nBest regards,\nBilly Hogan\nChief Executive Officer\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_008.msg",
+    "club": "Liverpool",
+    "filename": "email_008.msg",
+    "content": "From: scouts@liverpool.com\nTo: recruitment@liverpool.com\nSubject: Scouting Report - Winter Transfer Window Targets\nDate: December 5, 2040\n\nRecruitment Committee,\n\nComprehensive scouting analysis for January 2041 transfer window:\n\nPriority Target: Central Midfielder\nRecommendation: Eduardo Fernandez (Real Sociedad)\n\nPlayer Profile:\n- Age: 21\n- Position: Central Midfielder (Box-to-Box)\n- Contract: Expires June 2042\n- Release Clause: €45 million\n\nPerformance Metrics (2040 Season):\n- La Liga: 28 appearances, 6 goals, 9 assists\n- Europa League: 8 appearances, 2 goals, 4 assists\n- Spain U21: 8 caps, 3 goals\n- Pass completion: 89% (exceptional for attacking midfielder)\n\nTactical Fit:\n- Left-footed player (adds balance to midfield)\n- Strong in transitions (suits our high-intensity style)\n- Defensive contribution: 2.3 tackles per game\n- Age profile fits long-term planning\n\nContract Expectations:\n- Wage demand: £75,000/week\n- Contract length: 5 years preferred\n- Agent fee: 5% of transfer value\n- Personal terms: Agreeable to Liverpool move\n\nFinancial Analysis:\n- Transfer fee: €45 million (release clause)\n- Total cost over 5 years: €78 million\n- Amortization: €9 million per year\n- Resale value protection: High (young, talented)\n\nCompetition:\n- Arsenal showing interest\n- Bayern Munich monitoring\n- Real Madrid have buy-back option (€60M in 2042)\n\nRecommendation: PROCEED immediately. Player available, willing to join, and fits our system perfectly.\n\nJohn Achterberg Jr.\nChief Scout\nLiverpool FC",
+    "from": "scouts@liverpool.com",
+    "to": "recruitment@liverpool.com",
+    "subject": "Scouting Report - Winter Transfer Window Targets",
+    "date": "December 5, 2040",
+    "body": "Recruitment Committee,\n\nComprehensive scouting analysis for January 2041 transfer window:\n\nPriority Target: Central Midfielder\nRecommendation: Eduardo Fernandez (Real Sociedad)\n\nPlayer Profile:\n- Age: 21\n- Position: Central Midfielder (Box-to-Box)\n- Contract: Expires June 2042\n- Release Clause: €45 million\n\nPerformance Metrics (2040 Season):\n- La Liga: 28 appearances, 6 goals, 9 assists\n- Europa League: 8 appearances, 2 goals, 4 assists\n- Spain U21: 8 caps, 3 goals\n- Pass completion: 89% (exceptional for attacking midfielder)\n\nTactical Fit:\n- Left-footed player (adds balance to midfield)\n- Strong in transitions (suits our high-intensity style)\n- Defensive contribution: 2.3 tackles per game\n- Age profile fits long-term planning\n\nContract Expectations:\n- Wage demand: £75,000/week\n- Contract length: 5 years preferred\n- Agent fee: 5% of transfer value\n- Personal terms: Agreeable to Liverpool move\n\nFinancial Analysis:\n- Transfer fee: €45 million (release clause)\n- Total cost over 5 years: €78 million\n- Amortization: €9 million per year\n- Resale value protection: High (young, talented)\n\nCompetition:\n- Arsenal showing interest\n- Bayern Munich monitoring\n- Real Madrid have buy-back option (€60M in 2042)\n\nRecommendation: PROCEED immediately. Player available, willing to join, and fits our system perfectly.\n\nJohn Achterberg Jr.\nChief Scout\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_009.msg",
+    "club": "Liverpool",
+    "filename": "email_009.msg",
+    "content": "From: academy@liverpool.com\nTo: development@liverpool.com\nSubject: Academy Graduate Loan Placements - Contract Management\nDate: June 30, 2040\n\nDevelopment Team,\n\nAcademy loan placement summary for 2040-41 season:\n\nLoan Agreements Completed:\n\n1. Harvey Blair (Age 19) - Norwich City (Championship)\n   - Position: Attacking Midfielder\n   - Loan fee: £300,000\n   - Wage split: Liverpool 70%, Norwich 30%\n   - Performance clause: £50,000 if promoted to Premier League\n   - Liverpool stats: 2 first-team appearances, 45 U21 games\n\n2. Kaide Gordon Jr. (Age 20) - Sheffield United (Championship)\n   - Position: Right Winger  \n   - Loan fee: £200,000\n   - Wage split: Liverpool 60%, Sheffield 40%\n   - Recall clause: January if 20+ Championship appearances\n   - Liverpool stats: 5 first-team appearances, 38 U21 games\n\n3. Stefan Bajcetic Jr. (Age 19) - Real Sociedad (La Liga)\n   - Position: Defensive Midfielder\n   - Loan fee: €500,000\n   - Wage contribution: €25,000/month\n   - Development bonus: €100,000 if 15+ La Liga starts\n   - Liverpool stats: 8 first-team appearances, 42 U21 games\n\nContract Development Implications:\n- All players maintain Liverpool contracts during loans\n- Performance bonuses suspended but appearance fees continue\n- Professional development clauses remain active\n- Return evaluation scheduled for May 2041\n\nExpected Outcomes:\n- Blair: Championship experience to prepare for Liverpool first team\n- Gordon: Regular senior football to improve physicality\n- Bajcetic: La Liga tactical education under Spanish coaching\n\nTotal loan revenue: £1.2 million\nTotal wage contributions: £1.8 million\nNet cost: £600,000 (excellent value for development)\n\nAlex Inglethorpe\nAcademy Director\nLiverpool FC",
+    "from": "academy@liverpool.com",
+    "to": "development@liverpool.com",
+    "subject": "Academy Graduate Loan Placements - Contract Management",
+    "date": "June 30, 2040",
+    "body": "Development Team,\n\nAcademy loan placement summary for 2040-41 season:\n\nLoan Agreements Completed:\n\n1. Harvey Blair (Age 19) - Norwich City (Championship)\n   - Position: Attacking Midfielder\n   - Loan fee: £300,000\n   - Wage split: Liverpool 70%, Norwich 30%\n   - Performance clause: £50,000 if promoted to Premier League\n   - Liverpool stats: 2 first-team appearances, 45 U21 games\n\n2. Kaide Gordon Jr. (Age 20) - Sheffield United (Championship)\n   - Position: Right Winger  \n   - Loan fee: £200,000\n   - Wage split: Liverpool 60%, Sheffield 40%\n   - Recall clause: January if 20+ Championship appearances\n   - Liverpool stats: 5 first-team appearances, 38 U21 games\n\n3. Stefan Bajcetic Jr. (Age 19) - Real Sociedad (La Liga)\n   - Position: Defensive Midfielder\n   - Loan fee: €500,000\n   - Wage contribution: €25,000/month\n   - Development bonus: €100,000 if 15+ La Liga starts\n   - Liverpool stats: 8 first-team appearances, 42 U21 games\n\nContract Development Implications:\n- All players maintain Liverpool contracts during loans\n- Performance bonuses suspended but appearance fees continue\n- Professional development clauses remain active\n- Return evaluation scheduled for May 2041\n\nExpected Outcomes:\n- Blair: Championship experience to prepare for Liverpool first team\n- Gordon: Regular senior football to improve physicality\n- Bajcetic: La Liga tactical education under Spanish coaching\n\nTotal loan revenue: £1.2 million\nTotal wage contributions: £1.8 million\nNet cost: £600,000 (excellent value for development)\n\nAlex Inglethorpe\nAcademy Director\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_001.msg",
+    "club": "Liverpool",
+    "filename": "email_001.msg",
+    "content": "From: sporting.director@liverpool.com\nTo: agent@globalfootball.com\nSubject: Contract Extension Proposal - Mohamed Salah Jr.\nDate: March 8, 2040\n\nDear Mr. Hassan,\n\nLiverpool FC's contract extension offer for Mohamed Salah Jr.:\n\nProposed Terms:\n- Duration: 4 years (until June 2044)\n- Base Salary: £220,000 per week\n- Goal Bonus: £100,000 per Premier League goal\n- Assist Bonus: £50,000 per assist\n- Champions League Bonus: £1 million if we reach final\n- Loyalty Bonus: £5 million (paid in final year)\n\nCurrent Season Performance:\n- Premier League: 32 appearances, 28 goals, 14 assists\n- Champions League: 10 appearances, 8 goals, 5 assists\n- Domestic Cups: 6 appearances, 4 goals, 2 assists\n- Total: 48 appearances, 40 goals, 21 assists\n\nAdditional Benefits:\n- Image rights: 70/30 split (player favor)\n- Private jet allowance: £200,000 annually\n- Family accommodation: Luxury apartment provided\n- Charitable foundation support: £500,000 commitment\n\nPerformance Achievements:\n- Premier League Golden Boot contender\n- PFA Player of Year nominee\n- Liverpool top scorer for 4th consecutive season\n- International appearances: 12 caps, 9 goals for Egypt\n\nMohamed Jr. continues his father's legacy at Anfield. This contract reflects his status as one of the world's elite players.\n\nResponse needed by March 20th.\n\nBest regards,\nJorg Schmadtke\nSporting Director\nLiverpool FC",
+    "from": "sporting.director@liverpool.com",
+    "to": "agent@globalfootball.com",
+    "subject": "Contract Extension Proposal - Mohamed Salah Jr.",
+    "date": "March 8, 2040",
+    "body": "Dear Mr. Hassan,\n\nLiverpool FC's contract extension offer for Mohamed Salah Jr.:\n\nProposed Terms:\n- Duration: 4 years (until June 2044)\n- Base Salary: £220,000 per week\n- Goal Bonus: £100,000 per Premier League goal\n- Assist Bonus: £50,000 per assist\n- Champions League Bonus: £1 million if we reach final\n- Loyalty Bonus: £5 million (paid in final year)\n\nCurrent Season Performance:\n- Premier League: 32 appearances, 28 goals, 14 assists\n- Champions League: 10 appearances, 8 goals, 5 assists\n- Domestic Cups: 6 appearances, 4 goals, 2 assists\n- Total: 48 appearances, 40 goals, 21 assists\n\nAdditional Benefits:\n- Image rights: 70/30 split (player favor)\n- Private jet allowance: £200,000 annually\n- Family accommodation: Luxury apartment provided\n- Charitable foundation support: £500,000 commitment\n\nPerformance Achievements:\n- Premier League Golden Boot contender\n- PFA Player of Year nominee\n- Liverpool top scorer for 4th consecutive season\n- International appearances: 12 caps, 9 goals for Egypt\n\nMohamed Jr. continues his father's legacy at Anfield. This contract reflects his status as one of the world's elite players.\n\nResponse needed by March 20th.\n\nBest regards,\nJorg Schmadtke\nSporting Director\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_005.msg",
+    "club": "Liverpool",
+    "filename": "email_005.msg",
+    "content": "From: transfers@liverpool.com\nTo: sporting.director@dortmund.de\nSubject: Transfer Agreement - Kai Havertz Jr.\nDate: July 15, 2040\n\nLieber Herr Mueller,\n\nLiverpool FC's formal transfer proposal for Kai Havertz Jr.:\n\nTransfer Structure:\n- Base Fee: €68 million\n- Performance Add-ons: €17 million\n  * €7M after 75 appearances for Liverpool\n  * €5M if Champions League qualification in first 2 seasons\n  * €5M if player scores 20+ goals in any season\n- Payment Schedule: €25M upfront, €43M over 4 years\n\nPlayer Contract Terms:\n- Duration: 5 years (until June 2045)\n- Weekly Wage: £130,000\n- Signing Bonus: €4 million\n- Image Rights: 50/50 split\n- Performance Bonuses: £25,000 per goal, £15,000 per assist\n\nHavertz Jr. Statistics (2039-40):\n- Bundesliga: 33 appearances, 19 goals, 12 assists\n- Champions League: 8 appearances, 5 goals, 3 assists\n- Germany U21: 12 caps, 8 goals\n- Key passes per game: 2.8\n\nAdditional Terms:\n- Medical scheduled for July 20th\n- Work permit application submitted\n- Player excited about Anfield opportunity\n- Agent commission: 6% of transfer fee\n\nKai represents the perfect addition to our midfield, combining technical ability with goal threat. His versatility allows deployment in multiple positions within our system.\n\nConfirmation required by July 22nd to complete registration.\n\nMit freundlichen Grüßen,\nJulian Ward\nTransfer Director\nLiverpool FC",
+    "from": "transfers@liverpool.com",
+    "to": "sporting.director@dortmund.de",
+    "subject": "Transfer Agreement - Kai Havertz Jr.",
+    "date": "July 15, 2040",
+    "body": "Lieber Herr Mueller,\n\nLiverpool FC's formal transfer proposal for Kai Havertz Jr.:\n\nTransfer Structure:\n- Base Fee: €68 million\n- Performance Add-ons: €17 million\n  * €7M after 75 appearances for Liverpool\n  * €5M if Champions League qualification in first 2 seasons\n  * €5M if player scores 20+ goals in any season\n- Payment Schedule: €25M upfront, €43M over 4 years\n\nPlayer Contract Terms:\n- Duration: 5 years (until June 2045)\n- Weekly Wage: £130,000\n- Signing Bonus: €4 million\n- Image Rights: 50/50 split\n- Performance Bonuses: £25,000 per goal, £15,000 per assist\n\nHavertz Jr. Statistics (2039-40):\n- Bundesliga: 33 appearances, 19 goals, 12 assists\n- Champions League: 8 appearances, 5 goals, 3 assists\n- Germany U21: 12 caps, 8 goals\n- Key passes per game: 2.8\n\nAdditional Terms:\n- Medical scheduled for July 20th\n- Work permit application submitted\n- Player excited about Anfield opportunity\n- Agent commission: 6% of transfer fee\n\nKai represents the perfect addition to our midfield, combining technical ability with goal threat. His versatility allows deployment in multiple positions within our system.\n\nConfirmation required by July 22nd to complete registration.\n\nMit freundlichen Grüßen,\nJulian Ward\nTransfer Director\nLiverpool FC"
+  },
+  {
+    "file_path": "/root/Desktop/premier_league_emails_2040/Liverpool/email_004.msg",
+    "club": "Liverpool",
+    "filename": "email_004.msg",
+    "content": "From: finance@liverpool.com\nTo: board@liverpool.com\nSubject: Salary Cap Analysis - FFP Compliance Q3 2040\nDate: October 31, 2040\n\nBoard Members,\n\nFinancial Fair Play compliance review and salary expenditure analysis:\n\nCurrent Financial Position:\n- Total Revenue: £412 million (projected annual)\n- Wage Bill: £198 million (48% of revenue - compliant)\n- Transfer Amortization: £67 million\n- Operating Profit: £89 million\n\nSquad Salary Breakdown:\nTop 10 Earners:\n1. Mohamed Salah Jr.: £220,000/week + bonuses (performance: £2.1M earned)\n2. Virgil van Dijk III: £180,000/week + leadership bonus\n3. Sadio Mane Jr.: £165,000/week + goal bonuses (£550K earned)\n4. Darwin Nunez II: £150,000/week + appearance fees\n5. Luis Diaz Jr.: £140,000/week + assist bonuses\n6. Goalkeeper Kelleher II: £125,000/week + clean sheet bonuses\n7. Midfielder Alexander-Arnold III: £120,000/week + crossing bonuses\n8. Defender Konate Jr.: £110,000/week + defensive bonuses\n9. Forward Jota III: £105,000/week + goal bonuses\n10. Midfielder Szoboszlai Jr.: £100,000/week + creativity bonuses\n\nBonus Payments (Year to Date):\n- Goal bonuses: £4.2 million\n- Appearance bonuses: £3.8 million\n- Performance bonuses: £2.1 million\n- Clean sheet bonuses: £890,000\n- International bonuses: £650,000\n\nContract Renewals Budget:\n- Available for renewals: £25 million annually\n- Priority renewals: Salah Jr., Van Dijk III, Mane Jr.\n- Academy contracts: £2.5 million allocated\n\nFFP Compliance: EXCELLENT\nSustainability: 95% rating from UEFA\n\nMichael Edwards Jr.\nFinance Director\nLiverpool FC",
+    "from": "finance@liverpool.com",
+    "to": "board@liverpool.com",
+    "subject": "Salary Cap Analysis - FFP Compliance Q3 2040",
+    "date": "October 31, 2040",
+    "body": "Board Members,\n\nFinancial Fair Play compliance review and salary expenditure analysis:\n\nCurrent Financial Position:\n- Total Revenue: £412 million (projected annual)\n- Wage Bill: £198 million (48% of revenue - compliant)\n- Transfer Amortization: £67 million\n- Operating Profit: £89 million\n\nSquad Salary Breakdown:\nTop 10 Earners:\n1. Mohamed Salah Jr.: £220,000/week + bonuses (performance: £2.1M earned)\n2. Virgil van Dijk III: £180,000/week + leadership bonus\n3. Sadio Mane Jr.: £165,000/week + goal bonuses (£550K earned)\n4. Darwin Nunez II: £150,000/week + appearance fees\n5. Luis Diaz Jr.: £140,000/week + assist bonuses\n6. Goalkeeper Kelleher II: £125,000/week + clean sheet bonuses\n7. Midfielder Alexander-Arnold III: £120,000/week + crossing bonuses\n8. Defender Konate Jr.: £110,000/week + defensive bonuses\n9. Forward Jota III: £105,000/week + goal bonuses\n10. Midfielder Szoboszlai Jr.: £100,000/week + creativity bonuses\n\nBonus Payments (Year to Date):\n- Goal bonuses: £4.2 million\n- Appearance bonuses: £3.8 million\n- Performance bonuses: £2.1 million\n- Clean sheet bonuses: £890,000\n- International bonuses: £650,000\n\nContract Renewals Budget:\n- Available for renewals: £25 million annually\n- Priority renewals: Salah Jr., Van Dijk III, Mane Jr.\n- Academy contracts: £2.5 million allocated\n\nFFP Compliance: EXCELLENT\nSustainability: 95% rating from UEFA\n\nMichael Edwards Jr.\nFinance Director\nLiverpool FC"
+  }
+];
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+        
+        function fillQuery(query) {
+            document.getElementById('searchInput').value = query;
+            performSearch();
+        }
+        
+        function clearResults() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            
+            if (!query) {
+                alert('質問を入力してください');
+                return;
+            }
+            
+            // Show loading
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            resultsSection.style.display = 'block';
+            resultsContent.innerHTML = '<div class="loading">🔍 検索中...</div>';
+            
+            // Simulate search delay for better UX
+            setTimeout(() => {
+                const results = searchEmails(query);
+                displayResults(query, results);
+            }, 500);
+        }
+        
+        function searchEmails(query) {
+            const queryWords = query.toLowerCase().split(/\s+/);
+            const results = [];
+            
+            emailsData.forEach(email => {
+                const contentLower = email.content.toLowerCase();
+                let score = 0;
+                
+                queryWords.forEach(word => {
+                    if (contentLower.includes(word)) {
+                        score += (contentLower.match(new RegExp(word, 'g')) || []).length;
+                    }
+                });
+                
+                if (score > 0) {
+                    results.push({
+                        ...email,
+                        score: score
+                    });
+                }
+            });
+            
+            // Sort by score and return top 3
+            return results.sort((a, b) => b.score - a.score).slice(0, 3);
+        }
+        
+        function displayResults(query, results) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (results.length === 0) {
+                resultsContent.innerHTML = `
+                    <div class="no-results">
+                        ❌ 「${query}」に関連するメールが見つかりませんでした。<br>
+                        別のキーワードで検索してみてください。
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            results.forEach((result, index) => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            📧 結果 ${index + 1}: ${result.club}/${result.filename} (スコア: ${result.score})
+                        </div>
+                        <div class="result-content">
+                            <div class="email-meta">
+                                <strong>📄 件名:</strong> ${result.subject}<br>
+                                <strong>📅 日付:</strong> ${result.date}<br>
+                                <strong>👤 送信者:</strong> ${result.from}<br>
+                                <strong>📧 宛先:</strong> ${result.to}
+                            </div>
+                            ${extractRelevantInfo(query, result.body)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContent.innerHTML = html;
+        }
+        
+        function extractRelevantInfo(query, body) {
+            const queryLower = query.toLowerCase();
+            let info = '';
+            
+            // Check for contract-related queries
+            if (queryLower.includes('契約') || queryLower.includes('contract') || queryLower.includes('salary') || queryLower.includes('年俸')) {
+                info += extractContractInfo(body);
+            }
+            
+            // Check for transfer-related queries
+            if (queryLower.includes('移籍') || queryLower.includes('transfer')) {
+                info += extractTransferInfo(body);
+            }
+            
+            // Check for performance-related queries
+            if (queryLower.includes('出場') || queryLower.includes('ゴール') || queryLower.includes('appearances') || queryLower.includes('goals')) {
+                info += extractPerformanceInfo(body);
+            }
+            
+            // If no specific info found, show general content
+            if (!info) {
+                const lines = body.split('\n').slice(0, 5);
+                info = `
+                    <div class="performance-info">
+                        <strong>📄 内容抜粋:</strong><br>
+                        ${lines.filter(line => line.trim()).map(line => `&nbsp;&nbsp;${escapeHtml(line.trim())}`).join('<br>')}
+                    </div>
+                `;
+            }
+            
+            return info;
+        }
+        
+        function extractContractInfo(body) {
+            let info = '<div class="contract-info"><strong>💼 契約情報:</strong><br>';
+            let found = false;
+            
+            // Extract salary
+            const salaryMatch = body.match(/£([\d,]+)\/week|Weekly Wage: £([\d,]+)|Base Salary: £([\d,]+) per week/);
+            if (salaryMatch) {
+                const salary = salaryMatch[1] || salaryMatch[2] || salaryMatch[3];
+                info += `💰 週給: £${salary}<br>`;
+                found = true;
+            }
+            
+            // Extract contract duration
+            const durationMatch = body.match(/Duration: (\d+) years/);
+            if (durationMatch) {
+                info += `📆 契約期間: ${durationMatch[1]}年<br>`;
+                found = true;
+            }
+            
+            // Extract appearances
+            const appearancesMatch = body.match(/(\d+) appearances/);
+            if (appearancesMatch) {
+                info += `⚽ 出場試合数: ${appearancesMatch[1]}試合<br>`;
+                found = true;
+            }
+            
+            // Extract goals
+            const goalsMatch = body.match(/(\d+) goals/);
+            if (goalsMatch) {
+                info += `🥅 ゴール数: ${goalsMatch[1]}ゴール<br>`;
+                found = true;
+            }
+            
+            // Extract assists
+            const assistsMatch = body.match(/(\d+) assists/);
+            if (assistsMatch) {
+                info += `🎯 アシスト数: ${assistsMatch[1]}アシスト<br>`;
+                found = true;
+            }
+            
+            info += '</div>';
+            return found ? info : '';
+        }
+        
+        function extractTransferInfo(body) {
+            let info = '<div class="transfer-info"><strong>🔄 移籍情報:</strong><br>';
+            let found = false;
+            
+            // Extract transfer fee
+            const feeMatch = body.match(/€([\d,]+) million|£([\d,]+) million|Transfer Fee: £([\d,]+) million/);
+            if (feeMatch) {
+                const currency = feeMatch[1] ? '€' : '£';
+                const amount = feeMatch[1] || feeMatch[2] || feeMatch[3];
+                info += `💵 移籍金: ${currency}${amount} million<br>`;
+                found = true;
+            }
+            
+            // Extract clubs
+            const fromMatch = body.match(/from ([A-Za-z\s]+)(?:FC|CF)?/);
+            if (fromMatch) {
+                info += `🏟️ 移籍元: ${fromMatch[1].trim()}<br>`;
+                found = true;
+            }
+            
+            info += '</div>';
+            return found ? info : '';
+        }
+        
+        function extractPerformanceInfo(body) {
+            let info = '<div class="performance-info"><strong>📊 パフォーマンス:</strong><br>';
+            let found = false;
+            
+            // Extract various performance metrics
+            const appearances = body.match(/(\d+) appearances/);
+            const goals = body.match(/(\d+) goals/);
+            const assists = body.match(/(\d+) assists/);
+            const cleanSheets = body.match(/(\d+) clean sheets/);
+            
+            if (appearances) {
+                info += `⚽ 出場: ${appearances[1]}試合<br>`;
+                found = true;
+            }
+            if (goals) {
+                info += `🥅 ゴール: ${goals[1]}ゴール<br>`;
+                found = true;
+            }
+            if (assists) {
+                info += `🎯 アシスト: ${assists[1]}アシスト<br>`;
+                found = true;
+            }
+            if (cleanSheets) {
+                info += `🛡️ クリーンシート: ${cleanSheets[1]}試合<br>`;
+                found = true;
+            }
+            
+            info += '</div>';
+            return found ? info : '';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Initialize with focus on search input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchInput').focus();
+        });
+    </script>
+</body>
+</html>
