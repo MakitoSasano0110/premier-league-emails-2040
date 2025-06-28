@@ -107,38 +107,172 @@ class EmailSearchApp:
         results.sort(key=lambda x: x['score'], reverse=True)
         return results[:top_k]
     
-    def generate_answer(self, query: str, search_results: List[Dict]) -> str:
-        """Generate answer based on search results"""
+    def generate_answer(self, query: str, search_results: List[Dict]) -> tuple[str, str]:
+        """Generate direct answer and sources based on search results"""
         if not search_results:
-            return "申し訳ございませんが、関連するメールが見つかりませんでした。"
+            return "申し訳ございませんが、関連するメールが見つかりませんでした。", ""
         
-        answer = ""
+        # Generate direct answer first
+        direct_answer = self.generate_direct_answer(query, search_results)
+        
+        # Generate sources section
+        sources = "\n## 📋 参考となったメール\n\n"
         
         for i, result in enumerate(search_results, 1):
-            answer += f"**{i}. 出典: {result['club']}/{result['filename']}**\n"
-            answer += f"📧 件名: {result['subject']}\n"
-            answer += f"📅 日付: {result['date']}\n"
+            sources += f"**{i}. {result['club']} - {result['subject']}**\n"
+            sources += f"📅 {result['date']} | 📧 {result['filename']}\n"
             
-            # Extract relevant information based on query
-            if any(word in query.lower() for word in ['契約', '年俸', 'salary', 'contract']):
-                contract_info = self.extract_contract_info(result['body'])
-                if contract_info:
-                    answer += contract_info
-            elif any(word in query.lower() for word in ['移籍', 'transfer']):
-                transfer_info = self.extract_transfer_info(result['body'])
-                if transfer_info:
-                    answer += transfer_info
-            else:
-                # Show first few lines of content
-                lines = result['body'].split('\n')[:5]
-                answer += "📄 内容抜粋:\n"
-                for line in lines:
-                    if line.strip():
-                        answer += f"  {line.strip()}\n"
-            
-            answer += "\n---\n\n"
+            # Show relevant excerpt
+            lines = result['body'].split('\n')[:3]
+            sources += "💬 内容抜粋: "
+            excerpt = ""
+            for line in lines:
+                if line.strip():
+                    excerpt += line.strip() + " "
+                    if len(excerpt) > 100:
+                        excerpt = excerpt[:100] + "..."
+                        break
+            sources += excerpt + "\n\n"
         
-        return answer
+        return direct_answer, sources
+    
+    def generate_direct_answer(self, query: str, search_results: List[Dict]) -> str:
+        """Generate a direct, concise answer to the user's question"""
+        if not search_results:
+            return "関連情報が見つかりませんでした。"
+        
+        # Analyze query type and generate appropriate answer
+        query_lower = query.lower()
+        
+        # Contract/Salary related questions
+        if any(word in query_lower for word in ['契約', '年俸', 'salary', 'contract', '週給']):
+            return self.answer_contract_question(query, search_results)
+        
+        # Transfer related questions
+        elif any(word in query_lower for word in ['移籍', 'transfer', '移籍金', 'fee']):
+            return self.answer_transfer_question(query, search_results)
+        
+        # Player performance questions
+        elif any(word in query_lower for word in ['ゴール', 'goals', 'アシスト', 'assists', '出場', 'appearances']):
+            return self.answer_performance_question(query, search_results)
+        
+        # General questions
+        else:
+            return self.answer_general_question(query, search_results)
+    
+    def answer_contract_question(self, query: str, search_results: List[Dict]) -> str:
+        """Answer contract-related questions"""
+        for result in search_results:
+            contract_info = self.extract_contract_info(result['body'])
+            if contract_info:
+                # Extract key information for direct answer
+                body = result['body']
+                player_name = self.extract_player_name(query, result)
+                
+                # Extract salary
+                salary_match = re.search(r'£([\d,]+)/week|Weekly Wage: £([\d,]+)|Base Salary: £([\d,]+)', body)
+                if salary_match:
+                    salary = salary_match.group(1) or salary_match.group(2) or salary_match.group(3)
+                    return f"💰 **{player_name}の契約条件:** 週給£{salary}です。"
+                
+                # Extract duration
+                duration_match = re.search(r'Duration: (\d+) years', body)
+                if duration_match:
+                    duration = duration_match.group(1)
+                    return f"📅 **{player_name}の契約期間:** {duration}年契約です。"
+        
+        return "💼 契約に関する具体的な情報が見つかりませんでした。"
+    
+    def answer_transfer_question(self, query: str, search_results: List[Dict]) -> str:
+        """Answer transfer-related questions"""
+        for result in search_results:
+            body = result['body']
+            player_name = self.extract_player_name(query, result)
+            
+            # Extract transfer fee
+            fee_patterns = [
+                r'Transfer Fee: £([\d,]+) million',
+                r'Fee: £([\d,]+) million',
+                r'€([\d,]+) million'
+            ]
+            
+            for pattern in fee_patterns:
+                match = re.search(pattern, body)
+                if match:
+                    fee = match.group(1)
+                    currency = "£" if "£" in pattern else "€"
+                    return f"💵 **{player_name}の移籍金:** {currency}{fee} millionです。"
+        
+        return "🔄 移籍金に関する具体的な情報が見つかりませんでした。"
+    
+    def answer_performance_question(self, query: str, search_results: List[Dict]) -> str:
+        """Answer performance-related questions"""
+        for result in search_results:
+            body = result['body']
+            player_name = self.extract_player_name(query, result)
+            
+            stats = []
+            
+            # Extract goals
+            goals_match = re.search(r'(\d+) goals', body)
+            if goals_match:
+                stats.append(f"{goals_match.group(1)}ゴール")
+            
+            # Extract assists
+            assists_match = re.search(r'(\d+) assists', body)
+            if assists_match:
+                stats.append(f"{assists_match.group(1)}アシスト")
+            
+            # Extract appearances
+            appearances_match = re.search(r'(\d+) appearances', body)
+            if appearances_match:
+                stats.append(f"{appearances_match.group(1)}試合出場")
+            
+            if stats:
+                return f"⚽ **{player_name}の成績:** {', '.join(stats)}です。"
+        
+        return "📊 成績に関する具体的な情報が見つかりませんでした。"
+    
+    def answer_general_question(self, query: str, search_results: List[Dict]) -> str:
+        """Answer general questions"""
+        result = search_results[0]  # Use the most relevant result
+        player_name = self.extract_player_name(query, result)
+        
+        # Extract first meaningful sentence from email body
+        lines = result['body'].split('\n')
+        for line in lines:
+            if line.strip() and len(line.strip()) > 20:
+                return f"📧 **{player_name}について:** {line.strip()[:150]}..."
+        
+        return f"📄 {result['club']}からの{player_name}に関する情報が見つかりました。"
+    
+    def extract_player_name(self, query: str, result: Dict) -> str:
+        """Extract player name from query or email content"""
+        # Try to extract name from query
+        words = query.split()
+        for i, word in enumerate(words):
+            if word[0].isupper() and len(word) > 2:
+                # Potential name found
+                name_parts = [word]
+                # Check next words for more name parts
+                for j in range(i+1, min(i+3, len(words))):
+                    if words[j][0].isupper() or words[j].endswith('.'):
+                        name_parts.append(words[j])
+                    else:
+                        break
+                if len(name_parts) >= 1:
+                    return ' '.join(name_parts)
+        
+        # Fallback to extracting from email subject or content
+        subject = result.get('subject', '')
+        if 'Contract' in subject or 'Transfer' in subject:
+            # Extract name from subject
+            subject_words = subject.split()
+            for word in subject_words:
+                if word[0].isupper() and len(word) > 2 and word not in ['Contract', 'Transfer', 'Update', 'News']:
+                    return word
+        
+        return "選手"
     
     def extract_contract_info(self, body: str) -> str:
         """Extract contract-related information"""
@@ -291,12 +425,14 @@ def main():
             if results:
                 st.success(f"✅ {len(results)}件の関連メールが見つかりました")
                 
-                # Generate and display answer
-                answer = search_app.generate_answer(query, results)
+                # Generate direct answer and sources
+                direct_answer, sources = search_app.generate_answer(query, results)
                 
                 st.markdown("---")
-                st.subheader("📋 検索結果")
-                st.markdown(answer)
+                st.subheader("💡 回答")
+                st.markdown(direct_answer)
+                
+                st.markdown(sources)
                 
                 # Show detailed email content in expandable sections
                 st.markdown("---")
