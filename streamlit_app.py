@@ -15,13 +15,14 @@ st.set_page_config(
 class EmailSearchApp:
     def __init__(self, emails_directory: str = "."):
         self.emails_directory = emails_directory
-        self.emails_data = []
-        self.load_emails()
+        self.emails_data = self.load_emails()
     
     @st.cache_data
     def load_emails(_self):
         """Load all email files and extract content"""
         emails_data = []
+        progress_bar = st.progress(0)
+        status_text = st.empty()
         
         # Search for email files in subdirectories
         email_files = []
@@ -30,19 +31,28 @@ class EmailSearchApp:
             if os.path.exists(club_dir):
                 email_files.extend(glob.glob(os.path.join(club_dir, "*.msg")))
         
-        for file_path in email_files:
+        total_files = len(email_files)
+        for i, file_path in enumerate(email_files):
             try:
+                progress = (i + 1) / total_files
+                progress_bar.progress(progress)
+                status_text.text(f"Loading {os.path.basename(file_path)}... ({i+1}/{total_files})")
+                
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                email_data = _self.parse_email(content, file_path)
+                email_data = _self.parse_email_static(content, file_path)
                 emails_data.append(email_data)
             except Exception as e:
                 st.error(f"Error loading {file_path}: {e}")
         
+        progress_bar.empty()
+        status_text.empty()
+        
         return emails_data
     
-    def parse_email(self, content: str, file_path: str) -> Dict:
+    @staticmethod
+    def parse_email_static(content: str, file_path: str) -> Dict:
         """Parse email content and extract metadata"""
         lines = content.split('\n')
         
@@ -74,7 +84,6 @@ class EmailSearchApp:
                 break
         
         email_data['body'] = '\n'.join(lines[body_start:])
-        self.emails_data = self.load_emails()
         return email_data
     
     def search_emails(self, query: str, top_k: int = 3) -> List[Dict]:
@@ -198,31 +207,34 @@ class EmailSearchApp:
         
         return info if found_info else ""
 
+@st.cache_resource
+def get_email_search_app():
+    """Create and cache the EmailSearchApp instance"""
+    return EmailSearchApp()
+
 def main():
     # Header
     st.title("⚽ プレミアリーグ メール検索システム")
     st.markdown("### 2040年のプレミアリーグクラブのメールから選手情報を検索")
     
-    # Initialize the app
-    if 'search_app' not in st.session_state:
-        with st.spinner("📧 メールデータを読み込み中..."):
-            st.session_state.search_app = EmailSearchApp()
-        st.success(f"✅ {len(st.session_state.search_app.emails_data)}通のメールを読み込みました")
+    # Initialize the app with caching
+    with st.spinner("📧 メールデータを読み込み中..."):
+        search_app = get_email_search_app()
+    st.success(f"✅ {len(search_app.emails_data)}通のメールを読み込みました")
     
     # Sidebar with information
     with st.sidebar:
         st.header("📊 システム情報")
-        if 'search_app' in st.session_state:
-            total_emails = len(st.session_state.search_app.emails_data)
-            clubs = list(set([email['club'] for email in st.session_state.search_app.emails_data]))
-            
-            st.metric("📧 総メール数", total_emails)
-            st.metric("🏟️ 対象クラブ数", len(clubs))
-            
-            st.subheader("🏆 対象クラブ")
-            for club in sorted(clubs):
-                club_emails = len([e for e in st.session_state.search_app.emails_data if e['club'] == club])
-                st.write(f"🔸 **{club}**: {club_emails}通")
+        total_emails = len(search_app.emails_data)
+        clubs = list(set([email['club'] for email in search_app.emails_data]))
+        
+        st.metric("📧 総メール数", total_emails)
+        st.metric("🏟️ 対象クラブ数", len(clubs))
+        
+        st.subheader("🏆 対象クラブ")
+        for club in sorted(clubs):
+            club_emails = len([e for e in search_app.emails_data if e['club'] == club])
+            st.write(f"🔸 **{club}**: {club_emails}通")
         
         st.markdown("---")
         st.subheader("💡 使い方のヒント")
@@ -274,13 +286,13 @@ def main():
     # Perform search
     if search_clicked and query:
         with st.spinner("🔍 検索中..."):
-            results = st.session_state.search_app.search_emails(query, top_k=3)
+            results = search_app.search_emails(query, top_k=3)
             
             if results:
                 st.success(f"✅ {len(results)}件の関連メールが見つかりました")
                 
                 # Generate and display answer
-                answer = st.session_state.search_app.generate_answer(query, results)
+                answer = search_app.generate_answer(query, results)
                 
                 st.markdown("---")
                 st.subheader("📋 検索結果")
